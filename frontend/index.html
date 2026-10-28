@@ -3,1103 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daggerheart | Gerenciador de Fichas de RPG</title>
-    <!-- Google Fonts & FontAwesome Icons -->
+    <title>Daggerheart VTT | Início & Acesso</title>
+    <!-- Google Fonts: Cinzel (Fantasy Display) + Plus Jakarta Sans (Clean UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .login-hero-container {
+            min-height: calc(100vh - 60px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 38px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-card), 0 0 40px rgba(251, 191, 36, 0.15);
+            border: 1px solid var(--border-glow);
+            backdrop-filter: blur(22px);
+            background: linear-gradient(180deg, rgba(16, 19, 32, 0.94) 0%, rgba(10, 12, 22, 0.98) 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), var(--accent-purple), transparent);
+        }
+        .login-crest-orb {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 14px;
+            border-radius: 18px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(157, 78, 221, 0.2) 100%);
+            border: 1.5px solid var(--accent-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.85rem;
+            color: var(--accent-gold);
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.35);
+        }
+        .login-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.15;
+        }
+        .login-title span {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-top: 6px;
+            margin-bottom: 26px;
+        }
+        .lgpd-checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            text-align: left;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin: 6px 0 10px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+            line-height: 1.45;
+        }
+        .lgpd-checkbox-group input {
+            margin-top: 3px;
+            cursor: pointer;
+            accent-color: var(--accent-gold);
+        }
+        .lgpd-link {
+            color: var(--accent-gold);
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .feedback-message {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: none;
+            text-align: left;
+            animation: fadeIn 0.3s ease;
+        }
+        .feedback-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1.5px solid #ef4444;
+            color: #fca5a5;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feedback-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1.5px solid #10b981;
+            color: #6ee7b7;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Ambient Background Light Orbs (Esperança & Medo) -->
+    <!-- Ambient Background Glows -->
     <div class="ambient-glow glow-1"></div>
     <div class="ambient-glow glow-2"></div>
     <div class="ambient-glow glow-3"></div>
 
-    <div class="app-container">
-        <!-- Hero Header -->
-        <header class="hero-header">
-            <div class="hero-banner-wrapper">
-                <img src="banner.avif" alt="Daggerheart Fantasy Banner" class="hero-banner-img">
-                <div class="banner-gradient"></div>
-            </div>
-            <div class="hero-content">
-                <div class="brand-badge">
-                    <span class="pulse-dot"></span>
-                    <i class="fa-solid fa-dice-d20"></i> Daggerheart RPG • Fichas & Combate v2.5 Oficial
-                </div>
-                <h1>Grimório & <span>Arena de Combate</span></h1>
-                <p>Gerencie fichas completas com Cartas de Domínio e conduza encontros épicos com todos os 129 adversários oficiais.</p>
-
-                <!-- Navegação Principal: Fichas vs Sistema de Combate -->
-                <div class="app-mode-tabs">
-                    <button type="button" id="tabModeHeroes" class="mode-tab-btn active" onclick="alternarModoApp('heroes')">
-                        <i class="fa-solid fa-shield-halved"></i>
-                        <span>Grimório de Heróis (Fichas)</span>
-                    </button>
-                    <button type="button" id="tabModeCombat" class="mode-tab-btn" onclick="alternarModoApp('combat')">
-                        <i class="fa-solid fa-skull-crossbones"></i>
-                        <span>Sistema de Combate (Encontro & Bestiário)</span>
-                        <span id="combatCountBadge" class="combat-tab-badge">0</span>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Content Dashboard (Modo Fichas) -->
-        <main id="viewHeroesDashboard" class="dashboard-grid">
-            <!-- Left Panel: Character Cards Grid / Table -->
-            <section class="card glass-card list-section">
-                <div class="card-header">
-                    <div class="card-title">
-                        <div class="icon-box icon-gold">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <div>
-                            <h2>Heróis Cadastrados</h2>
-                            <span class="card-subtitle">Clique em um quadrado para abrir a ficha oficial</span>
-                        </div>
-                    </div>
-                    <div class="header-actions">
-                        <!-- Botões de Troca de Visualização -->
-                        <div class="view-toggle-group">
-                            <button id="btnViewCards" class="btn-toggle active" title="Exibir em Quadrados / Cards">
-                                <i class="fa-solid fa-grip"></i> <span>Quadrados</span>
-                            </button>
-                            <button id="btnViewTable" class="btn-toggle" title="Exibir em Tabela">
-                                <i class="fa-solid fa-table-list"></i> <span>Tabela</span>
-                            </button>
-                        </div>
-
-                        <div class="search-id-box">
-                            <input type="number" id="buscarIdInput" placeholder="ID do herói..." min="1">
-                            <button id="btnBuscarId" class="btn btn-secondary">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                                <span>Buscar por ID</span>
-                            </button>
-                        </div>
-                        <button id="btnBuscar" class="btn btn-primary">
-                            <i class="fa-solid fa-rotate-right"></i>
-                            <span>Buscar Todos</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="status-container">
-                    <div id="mensagem" class="status-badge">
-                        <i class="fa-solid fa-circle-info"></i> Clique em "Buscar Todos" para carregar as fichas de Daggerheart.
-                    </div>
-                </div>
-
-                <!-- Visualização em Quadrados / Cards (Padrão) -->
-                <div id="gridPersonagens" class="cards-grid">
-                    <!-- Inserido dinamicamente pelo script.js -->
-                </div>
-
-                <!-- Visualização Alternativa em Tabela -->
-                <div id="tableContainer" class="table-responsive" style="display: none;">
-                    <table class="cyber-table rpg-table">
-                        <thead>
-                            <tr>
-                                <th><i class="fa-solid fa-hashtag"></i> ID</th>
-                                <th><i class="fa-solid fa-image"></i> Foto</th>
-                                <th><i class="fa-solid fa-user-ninja"></i> Herói</th>
-                                <th><i class="fa-solid fa-wand-magic-sparkles"></i> Classe / Nível</th>
-                                <th><i class="fa-solid fa-tree"></i> Herança & Comunidade</th>
-                                <th><i class="fa-solid fa-bolt"></i> Atributos</th>
-                                <th><i class="fa-solid fa-heart-pulse"></i> Combate</th>
-                                <th><i class="fa-solid fa-sliders"></i> Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listarPersonagens">
-                            <!-- Inserido dinamicamente pelo script.js -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Right Panel: Form Card (Forja Rápida de Heróis) -->
-            <section class="card glass-card form-section">
-                <div class="card-header">
-                    <div class="card-title">
-                        <div class="icon-box icon-purple">
-                            <i class="fa-solid fa-feather-pointed"></i>
-                        </div>
-                        <div>
-                            <h2 id="formTitle">Forja de Heróis</h2>
-                            <span class="card-subtitle">Cadastre com raças e classes oficiais</span>
-                        </div>
-                    </div>
-                </div>
-
-                <form id="formulario" class="cyber-form rpg-form">
-                    <!-- Nome do Personagem -->
-                    <div class="input-group">
-                        <label for="nome">
-                            <i class="fa-solid fa-signature"></i> Nome do Herói *
-                        </label>
-                        <div class="input-wrapper">
-                            <input type="text" id="nome" required placeholder="Ex: Vaelin Sombraveloz">
-                            <i class="fa-solid fa-user-shield field-icon"></i>
-                        </div>
-                    </div>
-
-                    <!-- Foto / Retrato do Herói com Prévia e Presets -->
-                    <div class="input-group">
-                        <label for="imagem">
-                            <i class="fa-solid fa-image"></i> Foto / Retrato do Herói (URL)
-                        </label>
-                        <div class="photo-input-layout">
-                            <div class="avatar-preview-box">
-                                <img id="previewFoto" src="" alt="Prévia" class="avatar-preview-img" style="display: none;">
-                                <div id="placeholderFoto" class="avatar-placeholder">
-                                    <i class="fa-solid fa-user"></i>
-                                </div>
-                            </div>
-                            <div class="input-wrapper flex-1">
-                                <input type="url" id="imagem" placeholder="Cole o link da foto (URL)...">
-                                <i class="fa-solid fa-link field-icon"></i>
-                            </div>
-                        </div>
-
-                        <!-- Presets rápidos -->
-                        <div class="preset-avatars">
-                            <span class="preset-label">Fotos Prontas:</span>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1563089145-599997674d42?w=500&auto=format&fit=crop&q=80">⚔️ Guerreiro</button>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=500&auto=format&fit=crop&q=80">🗡️ Ladino</button>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80">✨ Mago</button>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&auto=format&fit=crop&q=80">🍃 Druida</button>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80">☀️ Serafim</button>
-                            <button type="button" class="btn-preset" data-url="https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80">🎵 Bardo</button>
-                        </div>
-                    </div>
-
-                    <!-- Classe e Subclasse Predefinidas -->
-                    <div class="form-row">
-                        <div class="input-group flex-1">
-                            <label for="classe">
-                                <i class="fa-solid fa-khanda"></i> Classe *
-                            </label>
-                            <div class="input-wrapper">
-                                <select id="classe" required>
-                                    <option value="" disabled selected>Selecione a Classe...</option>
-                                    <!-- Preenchido via script com classes oficiais -->
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="input-group flex-1">
-                            <label for="subclasse">
-                                <i class="fa-solid fa-award"></i> Subclasse
-                            </label>
-                            <div class="input-wrapper">
-                                <select id="subclasse">
-                                    <option value="">Selecione a classe primeiro...</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Indicador de Domínios da Classe -->
-                    <div id="classDomainsBadge" class="class-domains-hint" style="display: none;">
-                        <i class="fa-solid fa-scroll"></i> Domínios de Classe: <strong id="hintDomainsText">-</strong>
-                    </div>
-
-                    <!-- Ancestralidade (Raça Única ou Mista) e Comunidade -->
-                    <div class="ancestry-mode-selector">
-                        <label class="form-section-mini-label"><i class="fa-solid fa-dna"></i> Tipo de Herança / Raça:</label>
-                        <div class="ancestry-radios-row">
-                            <label class="radio-chip">
-                                <input type="radio" name="cAncestralidadeTipo" value="unica" checked>
-                                <span>Raça Única (2 poderes)</span>
-                            </label>
-                            <label class="radio-chip">
-                                <input type="radio" name="cAncestralidadeTipo" value="mista">
-                                <span>Herança Mista (2 raças • 1 poder cada)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Caixa para Raça Única -->
-                    <div id="cAncestryUnicaBox" class="form-row">
-                        <div class="input-group flex-1">
-                            <label for="ancestralidade">
-                                <i class="fa-solid fa-dna"></i> Ancestralidade *
-                            </label>
-                            <div class="input-wrapper">
-                                <select id="ancestralidade" required>
-                                    <option value="" disabled selected>Selecione a Raça...</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="input-group flex-1">
-                            <label for="comunidade">
-                                <i class="fa-solid fa-campground"></i> Comunidade *
-                            </label>
-                            <div class="input-wrapper">
-                                <select id="comunidade" required>
-                                    <option value="" disabled selected>Selecione a Comunidade...</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Caixa para Herança Mista (Duas Raças) -->
-                    <div id="cAncestryMistaBox" class="mista-form-container" style="display: none;">
-                        <div class="form-row">
-                            <div class="input-group flex-1">
-                                <label for="cAncestralidade1">1ª Raça *</label>
-                                <div class="input-wrapper">
-                                    <select id="cAncestralidade1"></select>
-                                </div>
-                            </div>
-                            <div class="input-group flex-1">
-                                <label for="cPoderRaca1">Poder da 1ª Raça *</label>
-                                <div class="input-wrapper">
-                                    <select id="cPoderRaca1" class="power-select"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="input-group flex-1">
-                                <label for="cAncestralidade2">2ª Raça *</label>
-                                <div class="input-wrapper">
-                                    <select id="cAncestralidade2"></select>
-                                </div>
-                            </div>
-                            <div class="input-group flex-1">
-                                <label for="cPoderRaca2">Poder da 2ª Raça *</label>
-                                <div class="input-wrapper">
-                                    <select id="cPoderRaca2" class="power-select"></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="cComunidadeMista">Comunidade *</label>
-                            <div class="input-wrapper">
-                                <select id="cComunidadeMista"></select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Prévia Visual das Habilidades Inatas Escolhidas -->
-                    <div class="live-abilities-preview" id="cAbilitiesPreview">
-                        <div class="preview-title"><i class="fa-solid fa-shield-halved"></i> Habilidades Inatas da sua Escolha</div>
-                        <div class="preview-item">
-                            <span class="preview-tag tag-classe">Classe:</span>
-                            <span id="cPrevHabClasse" class="preview-text">-</span>
-                        </div>
-                        <div class="preview-item">
-                            <span class="preview-tag tag-subclasse">Subclasse:</span>
-                            <span id="cPrevHabSubclasse" class="preview-text">-</span>
-                        </div>
-                        <div class="preview-item">
-                            <span class="preview-tag tag-comunidade">Comunidade:</span>
-                            <span id="cPrevHabComunidade" class="preview-text">-</span>
-                        </div>
-                        <div class="preview-item">
-                            <span class="preview-tag tag-raca">Ancestralidade:</span>
-                            <span id="cPrevHabRaca" class="preview-text">-</span>
-                        </div>
-                    </div>
-
-                    <!-- Nível e Gênero -->
-                    <div class="form-row">
-                        <div class="input-group flex-1">
-                            <label for="nivel">
-                                <i class="fa-solid fa-medal"></i> Nível
-                            </label>
-                            <div class="input-wrapper">
-                                <input type="number" id="nivel" min="1" max="10" value="1" required>
-                            </div>
-                        </div>
-
-                        <div class="input-group flex-1">
-                            <label for="genero">
-                                <i class="fa-solid fa-venus-mars"></i> Gênero
-                            </label>
-                            <div class="input-wrapper">
-                                <input type="text" id="genero" placeholder="Ex: Masculino, Feminino...">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 6 Atributos Canônicos de Daggerheart -->
-                    <div class="attributes-section">
-                        <div class="section-badge">
-                            <i class="fa-solid fa-chart-simple"></i> Atributos (AGI, FOR, ACU, INS, PRE, CON)
-                        </div>
-                        <div class="attributes-grid">
-                            <div class="attr-box">
-                                <label for="agilidade">AGI</label>
-                                <input type="number" id="agilidade" value="0">
-                            </div>
-                            <div class="attr-box">
-                                <label for="forca">FOR</label>
-                                <input type="number" id="forca" value="0">
-                            </div>
-                            <div class="attr-box">
-                                <label for="acuidade">ACU</label>
-                                <input type="number" id="acuidade" value="0">
-                            </div>
-                            <div class="attr-box">
-                                <label for="instinto">INS</label>
-                                <input type="number" id="instinto" value="0">
-                            </div>
-                            <div class="attr-box">
-                                <label for="presenca">PRE</label>
-                                <input type="number" id="presenca" value="0">
-                            </div>
-                            <div class="attr-box">
-                                <label for="conhecimento">CON</label>
-                                <input type="number" id="conhecimento" value="0">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status de Combate: Evasão, PV Máximo, Esperança -->
-                    <div class="combat-grid">
-                        <div class="input-group">
-                            <label for="evasao"><i class="fa-solid fa-person-running"></i> Evasão</label>
-                            <input type="number" id="evasao" value="10" min="0" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="pvMaximo"><i class="fa-solid fa-heart"></i> PV Máx</label>
-                            <input type="number" id="pvMaximo" value="6" min="1" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="esperanca"><i class="fa-solid fa-sun"></i> Esperança</label>
-                            <input type="number" id="esperanca" value="2" min="0" max="6" required>
-                        </div>
-                    </div>
-
-                    <!-- Botões de Ação da Forja -->
-                    <div class="form-actions">
-                        <button type="submit" id="btnsave" class="btn btn-accent btn-full">
-                            <i class="fa-solid fa-dragon"></i>
-                            <span id="btnSaveText">Cadastrar Herói</span>
-                        </button>
-                        <button type="button" id="btnCancelar" class="btn btn-secondary btn-full" style="display: none;">
-                            <i class="fa-solid fa-xmark"></i>
-                            <span>Cancelar Edição</span>
-                        </button>
-                    </div>
-                </form>
-            </section>
-        </main>
-
-        <!-- ========================================================================== -->
-        <!-- SISTEMA DE COMBATE DAGGERHEART (ARENA DE ENCONTRO & MEDO 1-10)            -->
-        <!-- ========================================================================== -->
-        <section id="viewCombatArena" class="combat-arena-wrapper" style="display: none;">
-            
-            <!-- 1. BARRA DE PONTOS DE MEDO DO MESTRE (1 A 10) -->
-            <div class="fear-tracker-banner glass-card">
-                <div class="fear-banner-left">
-                    <div class="fear-icon-orb">
-                        <i class="fa-solid fa-skull"></i>
-                    </div>
-                    <div>
-                        <span class="fear-eyebrow">RECURSO DO MESTRE (GM)</span>
-                        <h3>Barra de Pontos de Medo</h3>
-                        <p>Aumente ou reduza de 1 a 10 conforme os dados de Medo forem rolados ou gastos pelos adversários.</p>
-                    </div>
-                </div>
-
-                <div class="fear-banner-center">
-                    <div class="fear-controls-row">
-                        <button type="button" class="btn-fear-step" onclick="ajustarPontosDeMedo(-1)" title="Reduzir 1 Ponto de Medo">
-                            <i class="fa-solid fa-minus"></i>
-                        </button>
-
-                        <div class="fear-slots-container">
-                            <div class="fear-progress-bg">
-                                <div id="fearProgressBarFill" class="fear-progress-fill" style="width: 10%;"></div>
-                            </div>
-                            <div id="fearTokensTrack" class="fear-tokens-track">
-                                <!-- Slots 1 a 10 gerados dinamicamente pelo script.js -->
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn-fear-step" onclick="ajustarPontosDeMedo(1)" title="Aumentar 1 Ponto de Medo">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="fear-banner-right">
-                    <div class="fear-counter-display">
-                        <span id="fearCurrentVal" class="fear-big-num">1</span>
-                        <span class="fear-max-num">/ 10</span>
-                    </div>
-                    <span class="fear-status-label" id="fearStatusLabel">Medo Inicial</span>
-                </div>
+    <div class="login-hero-container">
+        <div class="login-card">
+            <div class="brand-badge" style="margin-bottom: 14px;">
+                <span class="pulse-dot"></span>
+                <i class="fa-solid fa-dice-d20"></i>
+                <span>SISTEMA OFICIAL VTT</span>
             </div>
 
-            <!-- 2. BARRA DE CONTROLES DO ENCONTRO (ADICIONAR HERÓIS E CRIATURAS) -->
-            <div class="combat-toolbar glass-card">
-                <div class="toolbar-group">
-                    <label><i class="fa-solid fa-user-shield"></i> Adicionar Personagem:</label>
-                    <div class="toolbar-inline-controls">
-                        <select id="selectHeroToCombat" class="combat-select">
-                            <option value="">Selecione um herói cadastrado...</option>
-                        </select>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="adicionarHeroiSelecionadoAoCombate()">
-                            <i class="fa-solid fa-plus"></i> <span>Adicionar Herói</span>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="adicionarTodosHeroisAoCombate()" title="Colocar todos os heróis cadastrados no combate">
-                            <i class="fa-solid fa-users"></i> <span>Todos os Heróis</span>
-                        </button>
+            <div class="login-crest-orb">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+
+            <h1 class="login-title">DAGGER<span>HEART</span></h1>
+            <p class="login-subtitle">Portal de Heróis, Fichas Oficiais & Arena de Combate</p>
+
+            <form id="formLogin" class="cyber-form rpg-form" style="text-align: left;">
+                <div class="input-group">
+                    <label for="inputUsuario"><i class="fa-solid fa-user-shield"></i> Usuário / Login</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="inputUsuario" placeholder="Digite seu usuário..." required autocomplete="username">
+                        <i class="fa-solid fa-feather-pointed field-icon"></i>
                     </div>
                 </div>
 
-                <div class="toolbar-actions-right">
-                    <button type="button" class="btn btn-accent" onclick="abrirModalBestiario()">
-                        <i class="fa-solid fa-dragon"></i>
-                        <span>+ Adicionar Criatura / Adversário (Bestiário Oficial)</span>
-                    </button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="limparCombateInteiro()" title="Remover todos do combate">
-                        <i class="fa-solid fa-Rotate-left"></i> <span>Reiniciar Encontro</span>
+                <div class="input-group">
+                    <label for="inputSenha"><i class="fa-solid fa-key"></i> Senha de Acesso</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="inputSenha" placeholder="Digite sua senha..." required autocomplete="current-password">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="lgpd-checkbox-group">
+                    <input type="checkbox" id="checkLgpd" required checked>
+                    <label for="checkLgpd">
+                        Concordo com os Termos e autorizo o tratamento de dados (login e fichas) conforme as <span class="lgpd-link" onclick="abrirModalLgpdLogin()">Normas da LGPD</span>.
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit">
+                        <i class="fa-solid fa-door-open"></i>
+                        <span>Entrar na Mesa</span>
                     </button>
                 </div>
+
+                <div id="msgFeedback" class="feedback-message"></div>
+            </form>
+
+            <div style="margin-top: 22px; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+                <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> As contas são criadas exclusivamente pela Conta Pai da mesa.<br>
+                Protegido sob a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
             </div>
-
-            <!-- 3. CAMPO DE BATALHA: HERÓIS VS CRIATURAS -->
-            <div class="battlefield-grid">
-                
-                <!-- COLUNA ESQUERDA: FICHAS DE PERSONAGEM EM COMBATE -->
-                <div class="combat-column heroes-combat-col glass-card">
-                    <div class="combat-col-header heroes-col-header">
-                        <div class="col-header-title">
-                            <div class="icon-box icon-gold">
-                                <i class="fa-solid fa-shield-heart"></i>
-                            </div>
-                            <div>
-                                <h2>Heróis em Combate</h2>
-                                <span class="card-subtitle">Vida (PV), Fadiga (PF), Armadura, Esperança e Retrato</span>
-                            </div>
-                        </div>
-                        <span id="combatHeroesCount" class="col-count-pill">0 Heróis</span>
-                    </div>
-
-                    <div id="combatHeroesList" class="combat-entities-list">
-                        <!-- Cards dos heróis em combate renderizados via script.js -->
-                    </div>
-                </div>
-
-                <!-- COLUNA DIREITA: FICHAS DE CRIATURAS / ADVERSÁRIOS EM COMBATE -->
-                <div class="combat-column enemies-combat-col glass-card">
-                    <div class="combat-col-header enemies-col-header">
-                        <div class="col-header-title">
-                            <div class="icon-box icon-crimson">
-                                <i class="fa-solid fa-skull-crossbones"></i>
-                            </div>
-                            <div>
-                                <h2>Criaturas & Adversários</h2>
-                                <span class="card-subtitle">Vida, Fadiga, Habilidades Oficiais, Ilustração e Anotações</span>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span id="combatEnemiesCount" class="col-count-pill crimson">0 Criaturas</span>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="abrirModalBestiario()">
-                                <i class="fa-solid fa-plus"></i> <span>Criatura</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="combatEnemiesList" class="combat-entities-list">
-                        <!-- Cards das criaturas em combate renderizados via script.js -->
-                    </div>
-                </div>
-
-            </div>
-        </section>
+        </div>
     </div>
 
-    <!-- ========================================================================== -->
-    <!-- MODAL DA FICHA GRANDE OFICIAL (DAGGERHEART CHARACTER SHEET FULLSCREEN)    -->
-    <!-- ========================================================================== -->
-    <div id="modalFichaGrande" class="sheet-modal-backdrop" style="display: none;">
-        <div class="sheet-modal-dialog">
-            <!-- Modal Header / Actions Bar -->
+    <!-- MODAL LGPD NA TELA INICIAL -->
+    <div id="modalLgpdLogin" class="sheet-modal-backdrop" style="display: none; z-index: 99999;">
+        <div class="sheet-modal-dialog" style="max-width: 620px; height: auto; max-height: 85vh;">
             <div class="sheet-modal-topbar">
-                <div class="topbar-left">
-                    <span class="sheet-tag"><i class="fa-solid fa-shield"></i> Ficha Oficial de Daggerheart</span>
-                    <span id="sheetFeedbackMsg" class="sheet-feedback"></span>
-                </div>
-                <div class="topbar-actions">
-                    <button type="button" id="btnAbrirSeletorCartas" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-layer-group"></i> <span>Ver / Adicionar Cartas de Domínio</span>
-                    </button>
-                    <button type="button" id="btnSalvarFichaGrande" class="btn btn-accent btn-sm">
-                        <i class="fa-solid fa-floppy-disk"></i> <span>Salvar Ficha</span>
-                    </button>
-                    <button type="button" id="btnFecharFichaGrande" class="btn btn-secondary btn-sm" title="Fechar (ESC)">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Authentic Character Sheet Paper Layout (Idêntico ao PDF Oficial) -->
-            <div class="sheet-paper" id="sheetPaper">
-                
-                <!-- TOP HEADER: LOGO, NOME, GÊNERO, HERANÇA, CLASSE/SUBCLASSE, NÍVEL -->
-                <div class="sheet-top-grid">
-                    <div class="sheet-logo-box">
-                        <h2>DAGGERHEART</h2>
-                        <span>FICHA DE PERSONAGEM</span>
-                    </div>
-
-                    <div class="sheet-field-group">
-                        <label>NOME</label>
-                        <input type="text" id="shNome" class="sheet-input">
-                    </div>
-
-                    <div class="sheet-field-group">
-                        <label>GÊNERO</label>
-                        <input type="text" id="shGenero" class="sheet-input">
-                    </div>
-
-                    <div class="sheet-level-badge">
-                        <label>NÍVEL</label>
-                        <input type="number" id="shNivel" min="1" max="10" value="1" class="sheet-level-input">
-                    </div>
-
-                    <div class="sheet-field-group full-row sheet-heritage-control-box">
-                        <div class="heritage-mode-bar">
-                            <label><i class="fa-solid fa-dna"></i> HERANÇA (ANCESTRALIDADE & COMUNIDADE)</label>
-                            <div class="ancestry-radios-row">
-                                <label class="radio-chip">
-                                    <input type="radio" name="shAncestralidadeTipo" value="unica" checked>
-                                    <span>Raça Única (2 Poderes)</span>
-                                </label>
-                                <label class="radio-chip">
-                                    <input type="radio" name="shAncestralidadeTipo" value="mista">
-                                    <span>Herança Mista (2 Raças • 1 Poder Cada)</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Layout Raça Única -->
-                        <div id="shAncestryUnicaBox" class="sheet-heritage-split">
-                            <div class="field-item">
-                                <label class="sub-label">Ancestralidade:</label>
-                                <select id="shAncestralidade" class="sheet-select"></select>
-                            </div>
-                            <span class="split-divider">•</span>
-                            <div class="field-item">
-                                <label class="sub-label">Comunidade:</label>
-                                <select id="shComunidade" class="sheet-select"></select>
-                            </div>
-                        </div>
-
-                        <!-- Layout Herança Mista -->
-                        <div id="shAncestryMistaBox" class="sheet-heritage-mista-grid" style="display: none;">
-                            <div class="mista-race-col">
-                                <label class="sub-label"><i class="fa-solid fa-circle-dot"></i> 1ª Raça:</label>
-                                <select id="shAncestralidadeMista1" class="sheet-select"></select>
-                                <label class="sub-label power-pick-label">Poder da 1ª Raça:</label>
-                                <select id="shPoderRaca1" class="sheet-select power-select"></select>
-                            </div>
-                            <div class="mista-race-col">
-                                <label class="sub-label"><i class="fa-solid fa-circle-dot"></i> 2ª Raça:</label>
-                                <select id="shAncestralidadeMista2" class="sheet-select"></select>
-                                <label class="sub-label power-pick-label">Poder da 2ª Raça:</label>
-                                <select id="shPoderRaca2" class="sheet-select power-select"></select>
-                            </div>
-                            <div class="mista-community-col">
-                                <label class="sub-label"><i class="fa-solid fa-campground"></i> Comunidade:</label>
-                                <select id="shComunidadeMista" class="sheet-select"></select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="sheet-field-group full-row">
-                        <label>CLASSE & SUBCLASSE</label>
-                        <div class="sheet-heritage-split">
-                            <select id="shClasse" class="sheet-select"></select>
-                            <span class="split-divider">•</span>
-                            <select id="shSubclasse" class="sheet-select"></select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STATS & 6 ATTRIBUTES ROW -->
-                <div class="sheet-stats-crest-row">
-                    <!-- Evasão -->
-                    <div class="crest-box evasion-crest">
-                        <span class="crest-title">EVASÃO</span>
-                        <div class="crest-circle">
-                            <input type="number" id="shEvasao" class="crest-input" value="10">
-                        </div>
-                    </div>
-
-                    <!-- Armadura -->
-                    <div class="crest-box armor-crest">
-                        <span class="crest-title">ARMADURA</span>
-                        <div class="crest-circle armor-shield">
-                            <input type="number" id="shArmadura" class="crest-input" value="0">
-                        </div>
-                        <div class="armor-hearts-grid" id="armorHeartsSlots">
-                            <!-- 6 slots de armadura interativos -->
-                        </div>
-                    </div>
-
-                    <!-- Os 6 Atributos Canônicos com Verbos -->
-                    <div class="attr-crest" data-attr="AGILIDADE">
-                        <div class="crest-label">AGILIDADE</div>
-                        <input type="number" id="shAgilidade" class="crest-val" value="0">
-                        <div class="crest-verbs">Correr<br>Equilibrar-se<br>Saltar</div>
-                    </div>
-
-                    <div class="attr-crest" data-attr="FORÇA">
-                        <div class="crest-label">FORÇA</div>
-                        <input type="number" id="shForca" class="crest-val" value="0">
-                        <div class="crest-verbs">Agarrar<br>Levantar<br>Romper</div>
-                    </div>
-
-                    <div class="attr-crest" data-attr="ACUIDADE">
-                        <div class="crest-label">ACUIDADE</div>
-                        <input type="number" id="shAcuidade" class="crest-val" value="0">
-                        <div class="crest-verbs">Esconder-se<br>Manipular<br>Manobrar</div>
-                    </div>
-
-                    <div class="attr-crest" data-attr="INSTINTO">
-                        <div class="crest-label">INSTINTO</div>
-                        <input type="number" id="shInstinto" class="crest-val" value="0">
-                        <div class="crest-verbs">Perceber<br>Pressentir<br>Orientar</div>
-                    </div>
-
-                    <div class="attr-crest" data-attr="PRESENÇA">
-                        <div class="crest-label">PRESENÇA</div>
-                        <input type="number" id="shPresenca" class="crest-val" value="0">
-                        <div class="crest-verbs">Comover<br>Convencer<br>Enganar</div>
-                    </div>
-
-                    <div class="attr-crest" data-attr="CONHECIMENTO">
-                        <div class="crest-label">CONHECIMENTO</div>
-                        <input type="number" id="shConhecimento" class="crest-val" value="0">
-                        <div class="crest-verbs">Analisar<br>Aprender<br>Lembrar</div>
-                    </div>
-                </div>
-
-                <!-- MAIN TWO-COLUMN BODY -->
-                <div class="sheet-main-cols">
-                    
-                    <!-- LEFT COLUMN -->
-                    <div class="sheet-col left-col">
-                        
-                        <!-- Saúde & Dano -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">SAÚDE & DANO</div>
-                            <span class="ribbon-subtitle">Some seu nível atual aos seus limiares de dano.</span>
-                            
-                            <div class="damage-thresholds-grid">
-                                <div class="thresh-card">
-                                    <span class="thresh-title">DANO MENOR</span>
-                                    <span class="thresh-sub">Marque 1 PV</span>
-                                    <input type="number" id="shDanoMenor" class="thresh-input" value="1">
-                                </div>
-                                <div class="thresh-card">
-                                    <span class="thresh-title">DANO MAIOR</span>
-                                    <span class="thresh-sub">Marque 2 PV</span>
-                                    <input type="number" id="shDanoMaior" class="thresh-input" value="2">
-                                </div>
-                                <div class="thresh-card">
-                                    <span class="thresh-title">DANO GRAVE</span>
-                                    <span class="thresh-sub">Marque 3 PV</span>
-                                    <input type="number" id="shDanoGrave" class="thresh-input" value="3">
-                                </div>
-                            </div>
-
-                            <div class="track-row">
-                                <span class="track-label">PV</span>
-                                <div class="track-pills" id="hpTrackPills">
-                                    <!-- 6 a 12 slots de PV -->
-                                </div>
-                                <input type="number" id="shPvMaximo" class="track-max-input" title="PV Máximo" value="6" min="1" max="15">
-                            </div>
-
-                            <div class="track-row">
-                                <span class="track-label">PF</span>
-                                <div class="track-pills" id="stressTrackPills">
-                                    <!-- 6 slots de Fadiga -->
-                                </div>
-                                <input type="number" id="shPfMaximo" class="track-max-input" title="PF Máximo" value="6" min="1" max="10">
-                            </div>
-                        </div>
-
-                        <!-- Esperança -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">ESPERANÇA</div>
-                            <span class="ribbon-subtitle">Gaste 1 Ponto de Esperança para usar uma Experiência ou prestar ajuda.</span>
-                            
-                            <div class="hope-diamonds-row" id="hopeDiamondsRow">
-                                <!-- 6 marcadores de esperança interativos -->
-                            </div>
-
-                            <div class="sheet-field-group">
-                                <label>HABILIDADE DE ESPERANÇA</label>
-                                <textarea id="shHabilidadeEsperanca" class="sheet-textarea" rows="2" placeholder="Descreva a habilidade de esperança de sua classe ou subclasse..."></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Experiências -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">EXPERIÊNCIAS</div>
-                            <div class="experiences-list" id="experiencesList">
-                                <div class="exp-row">
-                                    <input type="text" class="exp-name" placeholder="Ex: Espadachim da Guarda...">
-                                    <input type="number" class="exp-bonus" value="2">
-                                </div>
-                                <div class="exp-row">
-                                    <input type="text" class="exp-name" placeholder="Ex: Sobrevivente das Selvas...">
-                                    <input type="number" class="exp-bonus" value="2">
-                                </div>
-                                <div class="exp-row">
-                                    <input type="text" class="exp-name" placeholder="...">
-                                    <input type="number" class="exp-bonus" value="0">
-                                </div>
-                                <div class="exp-row">
-                                    <input type="text" class="exp-name" placeholder="...">
-                                    <input type="number" class="exp-bonus" value="0">
-                                </div>
-                                <div class="exp-row">
-                                    <input type="text" class="exp-name" placeholder="...">
-                                    <input type="number" class="exp-bonus" value="0">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Ouro -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">OURO</div>
-                            <div class="gold-counters-grid">
-                                <div class="gold-counter">
-                                    <i class="fa-solid fa-coins"></i>
-                                    <label>PUNHADOS</label>
-                                    <input type="number" id="shOuroPunhados" value="0" min="0">
-                                </div>
-                                <div class="gold-counter">
-                                    <i class="fa-solid fa-sack-dollar"></i>
-                                    <label>BOLSAS</label>
-                                    <input type="number" id="shOuroBolsas" value="0" min="0">
-                                </div>
-                                <div class="gold-counter">
-                                    <i class="fa-solid fa-vault"></i>
-                                    <label>BAÚ</label>
-                                    <input type="number" id="shOuroBau" value="0" min="0">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Habilidades e Poderes Inatos do Herói -->
-                        <div class="sheet-section-box sheet-abilities-container">
-                            <div class="sheet-ribbon-title">HABILIDADES & TRAÇOS DO HERÓI</div>
-                            <span class="ribbon-subtitle">Poderes canônicos da sua Classe, Subclasse, Comunidade e Ancestralidade (preenchidos e editáveis).</span>
-
-                            <!-- 1. Habilidade de Classe -->
-                            <div class="ability-card-block" id="blockHabClasse">
-                                <div class="ability-card-header">
-                                    <span class="ability-type-badge badge-classe"><i class="fa-solid fa-wand-magic-sparkles"></i> CLASSE</span>
-                                    <strong class="ability-entity-name" id="shHabClasseTitle">Classe</strong>
-                                </div>
-                                <textarea id="shHabilidadesClasse" class="sheet-textarea ability-textarea" rows="3" placeholder="Habilidade inata de Classe..."></textarea>
-                            </div>
-
-                            <!-- 2. Habilidade de Subclasse -->
-                            <div class="ability-card-block" id="blockHabSubclasse">
-                                <div class="ability-card-header">
-                                    <span class="ability-type-badge badge-subclasse"><i class="fa-solid fa-award"></i> SUBCLASSE</span>
-                                    <strong class="ability-entity-name" id="shHabSubclasseTitle">Subclasse</strong>
-                                    <span class="ability-casting-tag" id="shHabSubclasseCastTag"></span>
-                                </div>
-                                <textarea id="shHabilidadeSubclasse" class="sheet-textarea ability-textarea" rows="3" placeholder="Habilidade fundamental de Subclasse..."></textarea>
-                            </div>
-
-                            <!-- 3. Habilidade de Comunidade -->
-                            <div class="ability-card-block" id="blockHabComunidade">
-                                <div class="ability-card-header">
-                                    <span class="ability-type-badge badge-comunidade"><i class="fa-solid fa-campground"></i> COMUNIDADE</span>
-                                    <strong class="ability-entity-name" id="shHabComunidadeTitle">Comunidade</strong>
-                                </div>
-                                <textarea id="shHabilidadeComunidade" class="sheet-textarea ability-textarea" rows="3" placeholder="Poder cultural de Comunidade..."></textarea>
-                            </div>
-
-                            <!-- 4. Habilidade(s) de Raça / Ancestralidade -->
-                            <div class="ability-card-block" id="blockHabRaca">
-                                <div class="ability-card-header">
-                                    <span class="ability-type-badge badge-raca"><i class="fa-solid fa-dna"></i> ANCESTRALIDADE</span>
-                                    <strong class="ability-entity-name" id="shHabRacaTitle">Raça(s)</strong>
-                                    <span class="ability-ancestry-mode-tag" id="shHabRacaModeTag">Única (2 Poderes)</span>
-                                </div>
-                                <textarea id="shHabilidadeRaca" class="sheet-textarea ability-textarea" rows="4" placeholder="Poderes de Ancestralidade..."></textarea>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN -->
-                    <div class="sheet-col right-col">
-                        
-                        <!-- Armas Ativas -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title-with-dots">
-                                <span>ARMAS ATIVAS</span>
-                                <div class="prof-dots-box">
-                                    <label>PROFICIÊNCIA</label>
-                                    <div class="prof-dots" id="profDots">
-                                        <!-- Bolinhas de proficiência 1 a 5 -->
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Arma Principal -->
-                            <div class="weapon-subbox">
-                                <span class="weapon-badge">PRINCIPAL</span>
-                                <div class="weapon-fields-grid">
-                                    <div class="w-field full">
-                                        <label>NOME</label>
-                                        <input type="text" id="shArmaP_Nome" class="sheet-input-sm" placeholder="Ex: Espada Longa, Cajado Arcano...">
-                                    </div>
-                                    <div class="w-field">
-                                        <label>ATRIBUTO & ALCANCE</label>
-                                        <input type="text" id="shArmaP_Atrib" class="sheet-input-sm" placeholder="Ex: Força • Corpo a corpo">
-                                    </div>
-                                    <div class="w-field">
-                                        <label>DADOS & TIPO DE DANO</label>
-                                        <input type="text" id="shArmaP_Dano" class="sheet-input-sm" placeholder="Ex: 1d10+2 Físico">
-                                    </div>
-                                    <div class="w-field full">
-                                        <label>HABILIDADE</label>
-                                        <input type="text" id="shArmaP_Hab" class="sheet-input-sm" placeholder="Ex: Versátil, Alcance estendido...">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Arma Secundária -->
-                            <div class="weapon-subbox">
-                                <span class="weapon-badge">SECUNDÁRIA</span>
-                                <div class="weapon-fields-grid">
-                                    <div class="w-field full">
-                                        <label>NOME</label>
-                                        <input type="text" id="shArmaS_Nome" class="sheet-input-sm" placeholder="Ex: Adaga Sombria, Escudo Leve...">
-                                    </div>
-                                    <div class="w-field">
-                                        <label>ATRIBUTO & ALCANCE</label>
-                                        <input type="text" id="shArmaS_Atrib" class="sheet-input-sm" placeholder="Ex: Acuidade • Corpo a corpo / Arremesso">
-                                    </div>
-                                    <div class="w-field">
-                                        <label>DADOS & TIPO DE DANO</label>
-                                        <input type="text" id="shArmaS_Dano" class="sheet-input-sm" placeholder="Ex: 1d6+1 Físico">
-                                    </div>
-                                    <div class="w-field full">
-                                        <label>HABILIDADE</label>
-                                        <input type="text" id="shArmaS_Hab" class="sheet-input-sm" placeholder="...">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Armadura Ativa -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">ARMADURA ATIVA</div>
-                            <div class="armor-fields-grid">
-                                <div class="w-field full">
-                                    <label>NOME</label>
-                                    <input type="text" id="shArmaduraNome" class="sheet-input-sm" placeholder="Ex: Cota de Malha Élfica...">
-                                </div>
-                                <div class="w-field">
-                                    <label>LIMIARES BASE</label>
-                                    <input type="text" id="shArmaduraLimiares" class="sheet-input-sm" placeholder="Ex: Menor 5 / Maior 11 / Grave 17">
-                                </div>
-                                <div class="w-field">
-                                    <label>ARMADURA BASE</label>
-                                    <input type="text" id="shArmaduraBase" class="sheet-input-sm" placeholder="Ex: +3">
-                                </div>
-                                <div class="w-field full">
-                                    <label>HABILIDADE</label>
-                                    <input type="text" id="shArmaduraHab" class="sheet-input-sm" placeholder="Ex: Resistência contra corte...">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Inventário -->
-                        <div class="sheet-section-box">
-                            <div class="sheet-ribbon-title">INVENTÁRIO</div>
-                            <textarea id="shInventario" class="sheet-textarea" rows="4" placeholder="Itens, rações, tochas, pergaminhos, poções..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BOTTOM SECTION: CARTAS DE DOMÍNIO ATIVAS NA FICHA -->
-                <div class="sheet-domain-cards-section">
-                    <div class="domain-section-header">
-                        <div class="d-header-title">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <h3>CARTAS DE DOMÍNIO EQUIPADAS</h3>
-                            <span id="shDomainCardsBadge" class="sheet-domains-tag">Domínios: -</span>
-                        </div>
-                        <button type="button" id="btnGerenciarCartas" class="btn btn-primary btn-sm">
-                            <i class="fa-solid fa-plus"></i> <span>Adicionar / Escolher Cartas de Domínio</span>
-                        </button>
-                    </div>
-
-                    <div id="shEquippedCardsGrid" class="equipped-cards-grid">
-                        <!-- Cartas equipadas inseridas pelo script -->
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================== -->
-    <!-- DRAWER / SELETOR DE CARTAS DE DOMÍNIO (FILTRADO POR CLASSE & NÍVEL)       -->
-    <!-- ========================================================================== -->
-    <div id="modalCartasDominio" class="cards-browser-backdrop" style="display: none;">
-        <div class="cards-browser-dialog">
-            <div class="browser-header">
-                <div class="browser-title-box">
-                    <div class="icon-box icon-purple">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <div>
-                        <h2>Grimório de Cartas de Domínio</h2>
-                        <span id="browserSubtitle" class="browser-sub">Filtrando cartas para o herói</span>
-                    </div>
-                </div>
-                <button type="button" id="btnFecharSeletorCartas" class="btn btn-secondary">
-                    <i class="fa-solid fa-xmark"></i> <span>Fechar</span>
+                <span class="sheet-tag"><i class="fa-solid fa-scale-balanced"></i> Termos de Privacidade e Proteção de Dados (LGPD)</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalLgpdLogin()">
+                    <i class="fa-solid fa-xmark"></i> Fechar
                 </button>
             </div>
-
-            <!-- Filtros do Baralho -->
-            <div class="browser-filters-bar">
-                <div class="filter-group">
-                    <label>Domínio:</label>
-                    <select id="filterDominio">
-                        <option value="CLASSE">Somente Domínios da Classe</option>
-                        <option value="TODOS">Todos os 9 Domínios</option>
-                        <option value="Arcano">Arcano</option>
-                        <option value="Lâmina">Lâmina</option>
-                        <option value="Falange">Falange</option>
-                        <option value="Códice">Códice</option>
-                        <option value="Graça">Graça</option>
-                        <option value="Meia-noite">Meia-noite</option>
-                        <option value="Sabedoria">Sabedoria</option>
-                        <option value="Esplendor">Esplendor</option>
-                        <option value="Valor">Valor</option>
-                    </select>
+            <div class="sheet-paper" style="gap: 14px; font-size: 0.9rem; line-height: 1.6;">
+                <p><strong>1. Finalidade do Tratamento:</strong> Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD), seus dados cadastrais (nome de usuário e senha) e os dados de fichas de personagens são coletados e armazenados única e exclusivamente para autenticação e operação da plataforma de RPG Daggerheart.</p>
+                <p><strong>2. Minimização de Dados:</strong> Este sistema aplica o princípio da necessidade: não coletamos CPF, endereço, telefone, e-mail pessoal, dados biométricos nem dados bancários.</p>
+                <p><strong>3. Armazenamento e Acesso:</strong> Suas fichas ficam vinculadas com segurança à sua conta de jogador. O Mestre da mesa tem permissão de leitura e condução de combates conforme as regras do jogo.</p>
+                <p><strong>4. Direitos do Titular (Art. 18):</strong> Você pode revogar seu consentimento ou solicitar a exclusão definitiva de sua conta e de suas fichas a qualquer momento pelo menu interno do sistema.</p>
+                <div style="display: flex; justify-content: flex-end; padding-top: 10px;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="fecharModalLgpdLogin()">
+                        <i class="fa-solid fa-check"></i> Entendido
+                    </button>
                 </div>
-
-                <div class="filter-group">
-                    <label>Nível Máx:</label>
-                    <select id="filterNivel">
-                        <option value="HEROI">Até o Nível do Herói</option>
-                        <option value="10">Todos os Níveis (1 a 10)</option>
-                        <option value="1">Nível 1</option>
-                        <option value="2">Nível 2</option>
-                        <option value="3">Nível 3</option>
-                        <option value="4">Nível 4</option>
-                        <option value="5">Nível 5</option>
-                        <option value="6">Nível 6</option>
-                        <option value="7">Nível 7</option>
-                        <option value="8">Nível 8</option>
-                        <option value="9">Nível 9</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>Tipo:</label>
-                    <select id="filterTipo">
-                        <option value="TODOS">Todos os Tipos</option>
-                        <option value="Feitiço">Feitiço</option>
-                        <option value="Talento">Talento</option>
-                        <option value="Grimório">Grimório</option>
-                    </select>
-                </div>
-
-                <div class="filter-group flex-1">
-                    <label>Buscar Nome:</label>
-                    <input type="text" id="filterBuscaNome" placeholder="Digite para filtrar...">
-                </div>
-            </div>
-
-            <!-- Grade de Cartas de Domínio -->
-            <div id="browserCardsGrid" class="browser-cards-grid">
-                <!-- Inserido dinamicamente pelo script.js -->
             </div>
         </div>
     </div>
 
-    <!-- ========================================================================== -->
-    <!-- MODAL DO BESTIÁRIO OFICIAL (129 ADVERSÁRIOS DE INIMIGOS.PDF)              -->
-    <!-- ========================================================================== -->
-    <div id="modalBestiario" class="cards-browser-backdrop" style="display: none;">
-        <div class="cards-browser-dialog bestiary-dialog">
-            <div class="browser-header">
-                <div class="browser-title-box">
-                    <div class="icon-box icon-crimson">
-                        <i class="fa-solid fa-dragon"></i>
-                    </div>
-                    <div>
-                        <h2>Bestiário Oficial de Daggerheart (129 Criaturas)</h2>
-                        <span class="browser-sub">Selecione uma ou mais criaturas com suas habilidades e ilustrações oficiais para adicionar ao combate</span>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-secondary" onclick="fecharModalBestiario()">
-                    <i class="fa-solid fa-xmark"></i> <span>Fechar</span>
-                </button>
-            </div>
+    <script src="auth.js"></script>
+    <script>
+        const sessaoAtiva = obterSessao();
+        if (sessaoAtiva) {
+            window.location.href = "personagens.html";
+        }
 
-            <!-- Filtros do Bestiário -->
-            <div class="browser-filters-bar">
-                <div class="filter-group">
-                    <label>Patamar:</label>
-                    <select id="filterEnemyTier" onchange="renderizarBestiarioModal()">
-                        <option value="TODOS">Todos os Patamares (1º ao 4º)</option>
-                        <option value="1">1º Patamar (Nível 1)</option>
-                        <option value="2">2º Patamar (Níveis 2 a 4)</option>
-                        <option value="3">3º Patamar (Níveis 5 a 7)</option>
-                        <option value="4">4º Patamar (Níveis 8 a 10)</option>
-                    </select>
-                </div>
+        const formLogin = document.getElementById("formLogin");
+        const inputUsuario = document.getElementById("inputUsuario");
+        const inputSenha = document.getElementById("inputSenha");
+        const checkLgpd = document.getElementById("checkLgpd");
+        const msgFeedback = document.getElementById("msgFeedback");
+        const btnLoginSubmit = document.getElementById("btnLoginSubmit");
 
-                <div class="filter-group">
-                    <label>Papel / Tipo:</label>
-                    <select id="filterEnemyRole" onchange="renderizarBestiarioModal()">
-                        <option value="TODOS">Todos os Papéis</option>
-                        <option value="Solo">Solo</option>
-                        <option value="Líder">Líder</option>
-                        <option value="Brutamonte">Brutamonte</option>
-                        <option value="Horda">Horda</option>
-                        <option value="Comum">Comum</option>
-                        <option value="Atirador">Atirador</option>
-                        <option value="Oportunista">Oportunista</option>
-                        <option value="Assistente">Assistente</option>
-                        <option value="Manipulador">Manipulador</option>
-                        <option value="Lacaio">Lacaio</option>
-                    </select>
-                </div>
+        function exibirErroLogin(mensagem) {
+            msgFeedback.className = "feedback-message feedback-error";
+            msgFeedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem;"></i> <div><strong>Falha de Acesso:</strong> ${mensagem}</div>`;
+            msgFeedback.style.display = "flex";
+            inputSenha.value = "";
+            inputSenha.focus();
+        }
 
-                <div class="filter-group flex-1">
-                    <label>Buscar Criatura:</label>
-                    <input type="text" id="filterEnemySearch" placeholder="Ex: Dragão, Cobra-de-Vidro, Zumbi, Kraken..." oninput="renderizarBestiarioModal()">
-                </div>
-            </div>
+        formLogin.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            msgFeedback.className = "feedback-message";
+            msgFeedback.style.display = "none";
 
-            <!-- Grade de Criaturas do Bestiário -->
-            <div id="bestiaryCardsGrid" class="browser-cards-grid bestiary-cards-grid">
-                <!-- Inserido dinamicamente pelo script.js -->
-            </div>
-        </div>
-    </div>
+            if (!checkLgpd.checked) {
+                exibirErroLogin("Você deve aceitar os termos da LGPD para entrar na mesa.");
+                return;
+            }
 
-    <!-- Script Principal (Dados de Cartas, Inimigos e Skills carregados via Banco de Dados) -->
-    <script src="script.js"></script>
+            btnLoginSubmit.disabled = true;
+            btnLoginSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Verificando credenciais...</span>';
+
+            try {
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        login: inputUsuario.value.trim(),
+                        senha: inputSenha.value,
+                        lgpdAceite: true
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.mensagem || "Usuário ou senha incorretos.");
+                }
+
+                salvarSessao(data.token, data.usuario);
+
+                msgFeedback.className = "feedback-message feedback-success";
+                msgFeedback.innerHTML = `<i class="fa-solid fa-circle-check" style="font-size: 1.2rem;"></i> <div><strong>Sucesso:</strong> Login aprovado! Entrando na mesa...</div>`;
+                msgFeedback.style.display = "flex";
+
+                setTimeout(() => {
+                    window.location.href = "personagens.html";
+                }, 500);
+
+            } catch (err) {
+                exibirErroLogin(err.message || "Usuário ou senha inválidos. Verifique suas credenciais.");
+                btnLoginSubmit.disabled = false;
+                btnLoginSubmit.innerHTML = '<i class="fa-solid fa-door-open"></i> <span>Entrar na Mesa</span>';
+            }
+        });
+
+        function abrirModalLgpdLogin() {
+            document.getElementById("modalLgpdLogin").style.display = "flex";
+        }
+
+        function fecharModalLgpdLogin() {
+            document.getElementById("modalLgpdLogin").style.display = "none";
+        }
+    </script>
 </body>
 </html>

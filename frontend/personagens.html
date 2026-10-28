@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daggerheart VTT | Grimório de Personagens</title>
+    <!-- Google Fonts: Cinzel (Fantasy Display) + Plus Jakarta Sans (Clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Barra de Navegação e Hero Header Injetados por navbar.js -->
+        <div id="globalNavbarContainer"></div>
+
+        <!-- Grimório de Personagens (Card Glass Full Width) -->
+        <section class="card glass-card list-section full-width-section">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="icon-box icon-gold">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+                    <div>
+                        <h2>Grimório de Heróis</h2>
+                        <span class="card-subtitle" id="pageSubtitle">Clique em qualquer herói para abrir a Ficha Grandona Oficial</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <!-- Filtro do Mestre por Jogador -->
+                    <div id="filtroMestreBox" class="filter-group" style="display: none;">
+                        <label for="filtroCriador"><i class="fa-solid fa-user-tag"></i> Jogador:</label>
+                        <select id="filtroCriador" onchange="filtrarPersonagens()">
+                            <option value="">Todos os Jogadores</option>
+                        </select>
+                    </div>
+
+                    <!-- Busca por Nome ou ID -->
+                    <div class="search-id-box">
+                        <i class="fa-solid fa-magnifying-glass" style="color: var(--accent-gold);"></i>
+                        <input type="text" id="inputBuscaHeroi" placeholder="Buscar herói..." oninput="filtrarPersonagens()" style="width: 150px;">
+                    </div>
+
+                    <!-- Alternar Visualização Cards / Tabela -->
+                    <div class="view-toggle-group">
+                        <button type="button" id="btnViewCards" class="btn-toggle active" onclick="alternarVisualizacao('cards')" title="Visualizar em Quadrados">
+                            <i class="fa-solid fa-grip"></i>
+                            <span>Cards</span>
+                        </button>
+                        <button type="button" id="btnViewTable" class="btn-toggle" onclick="alternarVisualizacao('table')" title="Visualizar em Tabela">
+                            <i class="fa-solid fa-table-list"></i>
+                            <span>Tabela</span>
+                        </button>
+                    </div>
+
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="carregarPersonagens()">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Atualizar</span>
+                    </button>
+
+                    <a href="criar-ficha.html" class="btn btn-primary btn-sm" style="text-decoration: none;">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Criar Nova Ficha</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Status / Feedback Container -->
+            <div id="statusContainer" class="status-container" style="display: none;">
+                <p id="mensagem" class="status-badge">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Pronto.</span>
+                </p>
+            </div>
+
+            <!-- VIEW 1: QUADRADOS DE PERSONAGENS (CARDS GRID) -->
+            <div id="gridPersonagens" class="cards-grid">
+                <!-- Preenchido via personagens.js -->
+            </div>
+
+            <!-- VIEW 2: TABELA COMPACTA -->
+            <div id="tableWrapper" class="table-responsive" style="display: none;">
+                <table class="cyber-table rpg-table">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>ID</th>
+                            <th>Herói & Identidade</th>
+                            <th>Jogador</th>
+                            <th>Classe & Nível</th>
+                            <th>Ancestralidade & Comunidade</th>
+                            <th>Atributos</th>
+                            <th>Combate</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaPersonagens">
+                        <!-- Preenchido via personagens.js -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DA FICHA GRANDE OFICIAL (DAGGERHEART CHARACTER SHEET FULLSCREEN)-->
+    <!-- ===================================================================== -->
+    <div id="modalFichaGrande" class="sheet-modal-backdrop" style="display: none;">
+        <div class="sheet-modal-dialog">
+            <!-- Modal Header / Actions Bar -->
+            <div class="sheet-modal-topbar">
+                <div class="topbar-left">
+                    <span class="sheet-tag"><i class="fa-solid fa-scroll"></i> FICHA OFICIAL DE PERSONAGEM — DAGGERHEART</span>
+                    <span id="sheetFeedbackMsg" class="sheet-feedback"></span>
+                </div>
+                <div class="topbar-actions">
+                    <button type="button" id="btnAbrirSeletorCartas" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Gerenciar Cartas de Domínio</span>
+                    </button>
+                    <button type="button" id="btnSalvarFichaGrande" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Salvar Alterações na Ficha</span>
+                    </button>
+                    <button type="button" id="btnFecharFichaGrande" class="btn btn-secondary btn-sm">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Fechar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Sheet Paper -->
+            <div class="sheet-paper">
+                <!-- TOPO DA FICHA: Identidade, Foto, Classe, Subclasse e Nível -->
+                <!-- 1. IDENTIDADE PRINCIPAL (Sem sobreposição) -->
+                <div class="sheet-identity-bar">
+                    <div class="sheet-logo-box">
+                        <div class="avatar-preview-box" style="width: 58px; height: 58px;">
+                            <img id="shAvatarImg" src="" alt="Avatar" class="avatar-preview-img" style="display: none;">
+                            <i id="shAvatarPlaceholder" class="fa-solid fa-user-shield avatar-placeholder"></i>
+                        </div>
+                        <div>
+                            <h2>DAGGERHEART</h2>
+                            <span>FICHA OFICIAL</span>
+                        </div>
+                    </div>
+
+                    <div class="sheet-field-group">
+                        <label for="shNome">NOME DO PERSONAGEM *</label>
+                        <input type="text" id="shNome" class="sheet-input" placeholder="Nome do Herói" required>
+                    </div>
+
+                    <div class="sheet-field-group">
+                        <label for="shGenero">PRONOMES / GÊNERO</label>
+                        <input type="text" id="shGenero" class="sheet-input" placeholder="Ele/Dele, Ela/Dela...">
+                    </div>
+
+                    <div class="sheet-level-badge">
+                        <label for="shNivel">NÍVEL</label>
+                        <input type="number" id="shNivel" class="sheet-level-input" min="1" max="10" value="1">
+                    </div>
+                </div>
+
+                <!-- 2. ORIGENS & FOTO DO HERÓI -->
+                <div class="sheet-origins-bar">
+                    <div class="sheet-field-group">
+                        <label for="shImagemUrl">FOTO DO HERÓI (URL OU PRESETS)</label>
+                        <input type="text" id="shImagemUrl" class="sheet-input" placeholder="https://... ou img/..." oninput="atualizarFotoFichaGrande()">
+                    </div>
+
+                    <div class="sheet-field-group">
+                        <label for="shClasse">CLASSE OFICIAL *</label>
+                        <select id="shClasse" class="sheet-select" onchange="aoMudarClasseFichaGrande()"></select>
+                    </div>
+
+                    <div class="sheet-field-group">
+                        <label for="shSubclasse">SUBCLASSE OFICIAL</label>
+                        <select id="shSubclasse" class="sheet-select" onchange="aoMudarSubclasseFichaGrande()"></select>
+                    </div>
+                </div>
+                    <!-- Controle de Herança (Raça Única vs Mista + Comunidade) -->
+                    <div class="sheet-field-group" style="grid-column: 1 / -1;">
+                        <div class="sheet-heritage-control-box">
+                            <div class="heritage-mode-bar">
+                                <label>HERANÇA: ANCESTRALIDADE (RAÇA) & COMUNIDADE</label>
+                                <div class="ancestry-radios-row">
+                                    <label class="radio-chip">
+                                        <input type="radio" name="shAncestryMode" id="radioShUnica" value="unica" checked onchange="alternarModoAncestryFichaGrande('unica')">
+                                        <span>Raça Única (2 Poderes)</span>
+                                    </label>
+                                    <label class="radio-chip">
+                                        <input type="radio" name="shAncestryMode" id="radioShMista" value="mista" onchange="alternarModoAncestryFichaGrande('mista')">
+                                        <span>Raça Mista / Híbrida (1 Poder de cada)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Modo 1: Raça Única -->
+                            <div id="shHeritageUnicaRow" class="sheet-heritage-split">
+                                <div class="field-item">
+                                    <span class="sub-label">Raça Principal</span>
+                                    <select id="shAncestralidade" class="sheet-select" onchange="aoMudarRacaFichaGrande()"></select>
+                                </div>
+                                <span class="split-divider">+</span>
+                                <div class="field-item">
+                                    <span class="sub-label">Comunidade</span>
+                                    <select id="shComunidade" class="sheet-select" onchange="aoMudarComunidadeFichaGrande()"></select>
+                                </div>
+                            </div>
+
+                            <!-- Modo 2: Raça Mista -->
+                            <div id="shHeritageMistaRow" class="sheet-heritage-mista-grid" style="display: none;">
+                                <div class="mista-race-col">
+                                    <span class="sub-label">1ª Raça + Poder Escolhido</span>
+                                    <select id="shAncestralidadeMista1" class="sheet-select" onchange="aoMudarRacaMista1FichaGrande()"></select>
+                                    <select id="shPoderRaca1" class="sheet-select power-select" onchange="atualizarTextoRacaMistaFichaGrande()"></select>
+                                </div>
+                                <div class="mista-race-col">
+                                    <span class="sub-label">2ª Raça + Poder Escolhido</span>
+                                    <select id="shAncestralidadeMista2" class="sheet-select" onchange="aoMudarRacaMista2FichaGrande()"></select>
+                                    <select id="shPoderRaca2" class="sheet-select power-select" onchange="atualizarTextoRacaMistaFichaGrande()"></select>
+                                </div>
+                                <div class="mista-community-col">
+                                    <span class="sub-label">Comunidade</span>
+                                    <select id="shComunidadeMista" class="sheet-select" onchange="aoMudarComunidadeMistaFichaGrande()"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LINHA DE BRASÕES: EVASÃO, ARMADURA E OS 6 ATRIBUTOS -->
+                <div class="sheet-stats-crest-row">
+                    <!-- Evasão -->
+                    <div class="crest-box evasion-crest">
+                        <span class="crest-title">EVASÃO</span>
+                        <div class="crest-circle">
+                            <input type="number" id="shEvasao" class="crest-input" value="10">
+                        </div>
+                        <small style="font-size: 0.65rem; color: var(--text-muted);">Dificuldade p/ acertar</small>
+                    </div>
+
+                    <!-- Armadura + Slots -->
+                    <div class="crest-box armor-crest">
+                        <span class="crest-title">ARMADURA</span>
+                        <div class="armor-shield">
+                            <input type="number" id="shArmadura" class="crest-input" value="0">
+                        </div>
+                        <div class="armor-hearts-grid" id="armorHeartsSlots" title="Clique para marcar/desmarcar Slots de Armadura gastos"></div>
+                    </div>
+
+                    <!-- 6 Atributos -->
+                    <div class="attr-crest">
+                        <span class="crest-label">AGILIDADE</span>
+                        <input type="number" id="shAgilidade" class="crest-val" value="0">
+                        <div class="crest-verbs">Correr • Saltar • Manobrar</div>
+                    </div>
+                    <div class="attr-crest">
+                        <span class="crest-label">FORÇA</span>
+                        <input type="number" id="shForca" class="crest-val" value="0">
+                        <div class="crest-verbs">Agarrar • Levantar • Quebrar</div>
+                    </div>
+                    <div class="attr-crest">
+                        <span class="crest-label">ACUIDADE</span>
+                        <input type="number" id="shAcuidade" class="crest-val" value="0">
+                        <div class="crest-verbs">Controlar • Esconder • Prestidigitar</div>
+                    </div>
+                    <div class="attr-crest">
+                        <span class="crest-label">INSTINTO</span>
+                        <input type="number" id="shInstinto" class="crest-val" value="0">
+                        <div class="crest-verbs">Perceber • Sentir • Navegar</div>
+                    </div>
+                    <div class="attr-crest">
+                        <span class="crest-label">PRESENÇA</span>
+                        <input type="number" id="shPresenca" class="crest-val" value="0">
+                        <div class="crest-verbs">Charme • Atuar • Enganar</div>
+                    </div>
+                    <div class="attr-crest">
+                        <span class="crest-label">CONHECIMENTO</span>
+                        <input type="number" id="shConhecimento" class="crest-val" value="0">
+                        <div class="crest-verbs">Lembrar • Analisar • Compreender</div>
+                    </div>
+                </div>
+
+                <!-- CORPO PRINCIPAL EM 2 COLUNAS (DANO, EXPERIÊNCIAS, OURO, HABILIDADES, ARMAS, INVENTÁRIO) -->
+                <div class="sheet-main-cols">
+                    <!-- COLUNA ESQUERDA -->
+                    <div class="sheet-col left-col">
+                        <!-- Dano e Saúde -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">DANO E SAÚDE</h3>
+                            <p class="ribbon-subtitle">Adicione seu nível atual aos seus limiares de dano.</p>
+
+                            <div class="damage-thresholds-grid">
+                                <div class="thresh-card">
+                                    <span class="thresh-title">DANO MENOR</span>
+                                    <span class="thresh-sub">Marque 1 PV</span>
+                                    <input type="number" id="shDanoMenor" class="thresh-input" value="1">
+                                </div>
+                                <div class="thresh-card">
+                                    <span class="thresh-title">DANO MAIOR</span>
+                                    <span class="thresh-sub">Marque 2 PV</span>
+                                    <input type="number" id="shDanoMaior" class="thresh-input" value="8">
+                                </div>
+                                <div class="thresh-card">
+                                    <span class="thresh-title">DANO GRAVE</span>
+                                    <span class="thresh-sub">Marque 3 PV</span>
+                                    <input type="number" id="shDanoGrave" class="thresh-input" value="15">
+                                </div>
+                            </div>
+
+                            <!-- Trilha PV -->
+                            <div class="track-row">
+                                <div class="track-label">PV</div>
+                                <div class="track-pills" id="hpTrackPills"></div>
+                                <input type="number" id="shPvMaximo" class="track-max-input" min="1" max="18" value="6" title="PV Máximo" onchange="renderizarTrilhasPvPfArmadura()">
+                            </div>
+
+                            <!-- Trilha Fadiga / Estresse -->
+                            <div class="track-row">
+                                <div class="track-label">PF</div>
+                                <div class="track-pills" id="stressTrackPills"></div>
+                                <input type="number" id="shPfMaximo" class="track-max-input" min="1" max="18" value="6" title="Fadiga Máxima" onchange="renderizarTrilhasPvPfArmadura()">
+                            </div>
+                        </div>
+
+                        <!-- Esperança -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">ESPERANÇA</h3>
+                            <p class="ribbon-subtitle">Gaste um Ponto de Esperança para usar uma experiência ou ajudar um aliado.</p>
+                            <div class="hope-diamonds-row" id="hopeDiamondsRow"></div>
+                        </div>
+
+                        <!-- Experiências -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">EXPERIÊNCIAS</h3>
+                            <div id="shExperienciasList" class="experiences-list"></div>
+                            <button type="button" class="btn-add-exp" onclick="adicionarLinhaExperiencia()">
+                                <i class="fa-solid fa-plus"></i> Adicionar Experiência
+                            </button>
+                        </div>
+
+                        <!-- Ouro -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">RIQUEZA & OURO</h3>
+                            <div class="gold-counters-grid">
+                                <div class="gold-counter">
+                                    <i class="fa-solid fa-coins"></i>
+                                    <label>PUNHADOS</label>
+                                    <input type="number" id="shOuroPunhados" min="0" max="99" value="1">
+                                </div>
+                                <div class="gold-counter">
+                                    <i class="fa-solid fa-sack-dollar"></i>
+                                    <label>BOLSAS</label>
+                                    <input type="number" id="shOuroBolsas" min="0" max="99" value="0">
+                                </div>
+                                <div class="gold-counter">
+                                    <i class="fa-solid fa-treasure-chest"></i>
+                                    <label>BAÚS</label>
+                                    <input type="number" id="shOuroBau" min="0" max="99" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Habilidades de Origem e Classe -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">HABILIDADES DE CLASSE, SUBCLASSE, COMUNIDADE & RAÇA</h3>
+                            <div class="sheet-abilities-container">
+                                <div class="ability-card-block" id="blockHabClasse">
+                                    <div class="ability-card-header">
+                                        <span class="ability-type-badge badge-classe"><i class="fa-solid fa-shield-halved"></i> CLASSE</span>
+                                        <strong id="shHabClasseTitle" class="ability-entity-name">—</strong>
+                                    </div>
+                                    <textarea id="shHabilidadesClasse" class="ability-textarea" rows="4"></textarea>
+                                </div>
+
+                                <div class="ability-card-block" id="blockHabSubclasse">
+                                    <div class="ability-card-header">
+                                        <span class="ability-type-badge badge-subclasse"><i class="fa-solid fa-sparkles"></i> SUBCLASSE</span>
+                                        <strong id="shHabSubclasseTitle" class="ability-entity-name">—</strong>
+                                    </div>
+                                    <textarea id="shHabilidadeSubclasse" class="ability-textarea" rows="4"></textarea>
+                                </div>
+
+                                <div class="ability-card-block" id="blockHabComunidade">
+                                    <div class="ability-card-header">
+                                        <span class="ability-type-badge badge-comunidade"><i class="fa-solid fa-people-Roof"></i> COMUNIDADE</span>
+                                        <strong id="shHabComunidadeTitle" class="ability-entity-name">—</strong>
+                                    </div>
+                                    <textarea id="shHabilidadeComunidade" class="ability-textarea" rows="3"></textarea>
+                                </div>
+
+                                <div class="ability-card-block" id="blockHabRaca">
+                                    <div class="ability-card-header">
+                                        <span class="ability-type-badge badge-raca"><i class="fa-solid fa-dna"></i> ANCESTRALIDADE (RAÇA)</span>
+                                        <strong id="shHabRacaTitle" class="ability-entity-name">—</strong>
+                                    </div>
+                                    <textarea id="shHabilidadeRaca" class="ability-textarea" rows="4"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUNA DIREITA -->
+                    <div class="sheet-col right-col">
+                        <!-- Armas Ativas -->
+                        <div class="sheet-section-box">
+                            <div class="sheet-ribbon-title-with-dots">
+                                <span>ARMAS ATIVAS</span>
+                                <div class="prof-dots-box">
+                                    <label>PROFICIÊNCIA</label>
+                                    <div class="prof-dots" id="profDots"></div>
+                                </div>
+                            </div>
+
+                            <!-- Arma Principal -->
+                            <div class="weapon-subbox">
+                                <span class="weapon-badge">ARMA PRINCIPAL</span>
+                                <div class="weapon-fields-grid">
+                                    <div class="w-field">
+                                        <label>NOME</label>
+                                        <input type="text" id="shArmaP_Nome" class="sheet-input-sm" placeholder="Ex: Espada Longa">
+                                    </div>
+                                    <div class="w-field">
+                                        <label>ATRIBUTO & ALCANCE</label>
+                                        <input type="text" id="shArmaP_Atrib" class="sheet-input-sm" placeholder="Ex: Força / Corpo a Corpo">
+                                    </div>
+                                    <div class="w-field">
+                                        <label>DADOS DE DANO E TIPO</label>
+                                        <input type="text" id="shArmaP_Dano" class="sheet-input-sm" placeholder="Ex: 1d8+2 Físico">
+                                    </div>
+                                    <div class="w-field full">
+                                        <label>HABILIDADE / CARACTERÍSTICA</label>
+                                        <input type="text" id="shArmaP_Hab" class="sheet-input-sm" placeholder="Característica especial da arma">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Arma Secundária -->
+                            <div class="weapon-subbox">
+                                <span class="weapon-badge">ARMA SECUNDÁRIA</span>
+                                <div class="weapon-fields-grid">
+                                    <div class="w-field">
+                                        <label>NOME</label>
+                                        <input type="text" id="shArmaS_Nome" class="sheet-input-sm" placeholder="Ex: Adaga ou Escudo">
+                                    </div>
+                                    <div class="w-field">
+                                        <label>ATRIBUTO & ALCANCE</label>
+                                        <input type="text" id="shArmaS_Atrib" class="sheet-input-sm" placeholder="Ex: Acuidade / Curto">
+                                    </div>
+                                    <div class="w-field">
+                                        <label>DADOS DE DANO E TIPO</label>
+                                        <input type="text" id="shArmaS_Dano" class="sheet-input-sm" placeholder="Ex: 1d6 Físico">
+                                    </div>
+                                    <div class="w-field full">
+                                        <label>HABILIDADE / CARACTERÍSTICA</label>
+                                        <input type="text" id="shArmaS_Hab" class="sheet-input-sm" placeholder="Característica especial">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Armadura Ativa -->
+                        <div class="sheet-section-box">
+                            <h3 class="sheet-ribbon-title">ARMADURA ATIVA</h3>
+                            <div class="armor-fields-grid">
+                                <div class="w-field">
+                                    <label>NOME</label>
+                                    <input type="text" id="shArmaduraNome" class="sheet-input-sm" placeholder="Ex: Cota de Malha">
+                                </div>
+                                <div class="w-field">
+                                    <label>LIMIARES BASE</label>
+                                    <input type="text" id="shArmaduraLimiares" class="sheet-input-sm" placeholder="Ex: 7 / 15">
+                                </div>
+                                <div class="w-field">
+                                    <label>PONTUAÇÃO BASE</label>
+                                    <input type="text" id="shArmaduraBase" class="sheet-input-sm" placeholder="Ex: 4" oninput="sincronizarArmaduraBaseFichaGrande()">
+                                </div>
+                                <div class="w-field full">
+                                    <label>HABILIDADE / PROPRIEDADE</label>
+                                    <input type="text" id="shArmaduraHab" class="sheet-input-sm" placeholder="Ex: Pesada (-1 Evasão)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INVENTÁRIO ESTRUTURADO COMPLETO -->
+                        <div class="sheet-section-box">
+                            <div class="sheet-ribbon-title-with-dots">
+                                <span><i class="fa-solid fa-box-open" style="color: var(--accent-gold); margin-right: 6px;"></i> INVENTÁRIO & MOCHILA</span>
+                                <button type="button" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 0.72rem;" onclick="adicionarLinhaItemInventario()">
+                                    <i class="fa-solid fa-plus"></i> Novo Item
+                                </button>
+                            </div>
+
+                            <div class="inventory-manager-box">
+                                <div id="listaItensInventario" class="inv-items-list"></div>
+                            </div>
+
+                            <div class="w-field full" style="margin-top: 6px;">
+                                <label>ANOTAÇÕES DE MOCHILA, POÇÕES & PERTENCES GERAIS</label>
+                                <textarea id="shInventario" class="sheet-textarea" rows="3" placeholder="Anotações livres da mochila, consumíveis e relíquias..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO DE CARTAS DE DOMÍNIO EQUIPADAS -->
+                <div class="sheet-domain-cards-section">
+                    <div class="domain-section-header">
+                        <div class="d-header-title">
+                            <i class="fa-solid fa-book-sparkles"></i>
+                            <h3>GRIMÓRIO / CARTAS DE DOMÍNIO EQUIPADAS</h3>
+                            <span id="shDomainCardsBadge" class="sheet-domains-tag">Domínios da Classe</span>
+                        </div>
+                        <button type="button" class="btn btn-accent btn-sm" onclick="abrirModalCartasDominio()">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Adicionar / Trocar Cartas</span>
+                        </button>
+                    </div>
+                    <div id="shEquippedCardsGrid" class="equipped-cards-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DO SELETOR DE CARTAS DE DOMÍNIO                                  -->
+    <!-- ===================================================================== -->
+    <div id="modalCartasDominio" class="cards-browser-backdrop" style="display: none;">
+        <div class="cards-browser-dialog">
+            <div class="browser-header">
+                <div class="browser-title-box">
+                    <i class="fa-solid fa-layer-group" style="color: var(--accent-gold); font-size: 1.4rem;"></i>
+                    <div>
+                        <h2>Catálogo Oficial de Cartas de Domínio</h2>
+                        <span id="browserSubtitle" class="browser-sub">189 Cartas Oficiais do Sistema Daggerheart</span>
+                    </div>
+                </div>
+                <button type="button" id="btnFecharSeletorCartas" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Voltar para a Ficha</span>
+                </button>
+            </div>
+
+            <div class="browser-filters-bar">
+                <div class="filter-group">
+                    <label>Domínio:</label>
+                    <select id="filterDominio" onchange="renderizarCartasDoNavegador()">
+                        <option value="">Todos os Domínios</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Nível:</label>
+                    <select id="filterNivel" onchange="renderizarCartasDoNavegador()">
+                        <option value="">Todos os Níveis (1 a 10)</option>
+                        <option value="1">Até Nível 1</option>
+                        <option value="2">Até Nível 2</option>
+                        <option value="3">Até Nível 3</option>
+                        <option value="4">Até Nível 4</option>
+                        <option value="5">Até Nível 5</option>
+                        <option value="6">Até Nível 6</option>
+                        <option value="7">Até Nível 7</option>
+                        <option value="8">Até Nível 8</option>
+                        <option value="9">Até Nível 9</option>
+                        <option value="10">Até Nível 10</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="flex: 1;">
+                    <label><i class="fa-solid fa-magnifying-glass"></i></label>
+                    <input type="text" id="filterBuscaNome" placeholder="Buscar carta por nome ou efeito..." oninput="renderizarCartasDoNavegador()" style="width: 100%;">
+                </div>
+            </div>
+
+            <div id="browserCardsGrid" class="browser-cards-grid"></div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="navbar.js"></script>
+    <script src="personagens.js"></script>
+</body>
+</html>

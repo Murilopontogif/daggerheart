@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daggerheart VTT | Arena de Combate & Medidor de Medo</title>
+    <!-- Google Fonts: Cinzel (Fantasy Display) + Plus Jakarta Sans (Clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Barra de Navegação e Hero Header Injetados por navbar.js -->
+        <div id="globalNavbarContainer"></div>
+
+        <!-- ================================================================ -->
+        <!-- ARENA DE COMBATE OFICIAL & MEDIDOR DE MEDO (1 A 10)              -->
+        <!-- ================================================================ -->
+        <section id="viewArenaCombate" class="combat-arena-wrapper">
+
+            <!-- 1. BARRA DE PONTOS DE MEDO DO MESTRE (1 a 10) -->
+            <div class="fear-tracker-banner glass-card">
+                <div class="fear-banner-left">
+                    <div class="fear-icon-orb">
+                        <i class="fa-solid fa-skull"></i>
+                    </div>
+                    <div>
+                        <span class="fear-eyebrow">RECURSO DO MESTRE (GM FEAR TRACKER)</span>
+                        <h3>Barra de Pontos de Medo</h3>
+                        <p>Acumule até 10 pontos quando jogadores rolarem com Medo e gaste para ativar habilidades de ameaça.</p>
+                    </div>
+                </div>
+
+                <div class="fear-banner-center">
+                    <div class="fear-controls-row">
+                        <button type="button" id="btnFearMenos" class="btn-fear-step" onclick="alterarPontosMedo(-1)" title="Gastar 1 Ponto de Medo">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+
+                        <div class="fear-slots-container">
+                            <div class="fear-progress-bg">
+                                <div id="fearProgressBarFill" class="fear-progress-fill" style="width: 0%;"></div>
+                            </div>
+                            <div id="fearTokensTrack" class="fear-tokens-track">
+                                <!-- 10 Slots de Medo gerados via combate.js -->
+                            </div>
+                        </div>
+
+                        <button type="button" id="btnFearMais" class="btn-fear-step" onclick="alterarPontosMedo(1)" title="Ganhar 1 Ponto de Medo">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="fear-banner-right">
+                    <div class="fear-counter-display">
+                        <span id="fearCurrentValue" class="fear-big-num">0</span>
+                        <span class="fear-max-num">/ 10</span>
+                    </div>
+                    <span id="fearStatusLabel" class="fear-status-label">Calma na Mesa</span>
+                    <button type="button" id="btnFearZerar" class="btn btn-secondary btn-sm" onclick="definirPontosMedo(0)" style="margin-top: 6px; padding: 4px 10px; font-size: 0.72rem;">
+                        <i class="fa-solid fa-rotate-left"></i> Zerar Medo
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. ROLADOR DE DADOS DE DUALIDADE 2d12 (ESPERANÇA vs MEDO) -->
+            <div class="duality-roller-bar glass-card">
+                <div class="col-header-title">
+                    <div class="icon-box icon-purple">
+                        <i class="fa-solid fa-dice-d20"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-family: 'Cinzel', serif; font-size: 1.15rem; color: #fff;">Dados de Dualidade (2d12)</h2>
+                        <span class="card-subtitle">Role o Dado da Esperança (Dourado) e o Dado do Medo (Ametista)</span>
+                    </div>
+                </div>
+
+                <div class="duality-result-pills">
+                    <div class="dice-box-pill hope-die">
+                        <i class="fa-solid fa-sun"></i>
+                        <span>Esperança: <strong id="valHopeDie" style="font-size: 1.15rem;">—</strong></span>
+                    </div>
+                    <div class="dice-box-pill fear-die">
+                        <i class="fa-solid fa-skull"></i>
+                        <span>Medo: <strong id="valFearDie" style="font-size: 1.15rem;">—</strong></span>
+                    </div>
+                    <div class="dice-box-pill">
+                        <span>Total: <strong id="diceTotalVal" style="font-size: 1.15rem; color: #fff;">—</strong></span>
+                    </div>
+                    <div id="diceResultBadge"></div>
+                </div>
+
+                <button type="button" id="btnRolarDadosDualidade" class="btn btn-primary btn-sm" onclick="rolarDadosDualidade()">
+                    <i class="fa-solid fa-dice"></i>
+                    <span>Rolar Dualidade (2d12)</span>
+                </button>
+            </div>
+
+            <!-- 3. BARRA DE COMANDO DO ENCONTRO -->
+            <div class="combat-toolbar glass-card">
+                <div class="toolbar-group">
+                    <label><i class="fa-solid fa-user-plus"></i> Adicionar Herói ao Combate:</label>
+                    <div class="toolbar-inline-controls">
+                        <select id="selectHeroiParaCombate" class="combat-select">
+                            <option value="">Carregando heróis...</option>
+                        </select>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="adicionarHeroiSelecionadoAoCombate()">
+                            <i class="fa-solid fa-shield-heart"></i>
+                            <span>Colocar Herói</span>
+                        </button>
+                        <button type="button" id="btnColocarTodosHerois" class="btn btn-secondary btn-sm" onclick="adicionarTodosHeroisAoCombate()" style="display: none;">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Colocar Todos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="toolbar-actions-right">
+                    <span id="labelPapelUsuario"></span>
+
+                    <button type="button" id="btnMestreAddMonstro" class="btn btn-accent btn-sm" style="display: none;" onclick="abrirModalBestiario()">
+                        <i class="fa-solid fa-book-skull"></i>
+                        <span>Invocar Inimigo do Bestiário (129)</span>
+                    </button>
+
+                    <button type="button" id="btnMestreLimparArena" class="btn btn-secondary btn-sm" style="display: none; border-color: rgba(239,68,68,0.45); color: #fca5a5;" onclick="limparArenaCombate()">
+                        <i class="fa-solid fa-broom"></i>
+                        <span>Limpar Arena</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. CAMPO DE BATALHA: HERÓIS VS AMEAÇAS -->
+            <div class="battlefield-grid">
+                <!-- Coluna Esquerda: Heróis em Combate -->
+                <div class="combat-column heroes-combat-col glass-card">
+                    <div class="combat-col-header">
+                        <div class="col-header-title">
+                            <div class="icon-box icon-gold">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div>
+                                <h2>Heróis em Campo</h2>
+                                <span class="card-subtitle">PV, Fadiga, Armadura e Esperança sincronizados com as fichas</span>
+                            </div>
+                        </div>
+                        <span id="combatHeroesCount" class="col-count-pill">0 Heróis</span>
+                    </div>
+
+                    <div id="combatHeroesList" class="combat-entities-list">
+                        <!-- Renderizado via combate.js -->
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Inimigos / Ameaças em Combate -->
+                <div class="combat-column enemies-combat-col glass-card">
+                    <div class="combat-col-header">
+                        <div class="col-header-title">
+                            <div class="icon-box icon-crimson">
+                                <i class="fa-solid fa-dragon"></i>
+                            </div>
+                            <div>
+                                <h2>Ameaças & Criaturas</h2>
+                                <span class="card-subtitle" id="enemiesColSubtitle">Adversários ativos no encontro</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span id="combatEnemiesCount" class="col-count-pill crimson">0 Inimigos</span>
+                            <button type="button" id="btnMestreAddMonstroCol" class="btn btn-accent btn-sm" style="display: none;" onclick="abrirModalBestiario()">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Adicionar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="combatEnemiesList" class="combat-entities-list">
+                        <!-- Renderizado via combate.js -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DO BESTIÁRIO OFICIAL DE DAGGERHEART (EXCLUSIVO DO MESTRE)        -->
+    <!-- ===================================================================== -->
+    <div id="modalBestiario" class="cards-browser-backdrop" style="display: none;">
+        <div class="cards-browser-dialog bestiary-dialog">
+            <div class="browser-header">
+                <div class="browser-title-box">
+                    <i class="fa-solid fa-book-skull" style="color: var(--accent-crimson); font-size: 1.5rem;"></i>
+                    <div>
+                        <h2>Bestiário Oficial de Daggerheart</h2>
+                        <span id="bestiarySubtitle" class="browser-sub">Escolha e invoque criaturas para a Arena de Combate</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="criaturas.html" class="btn btn-primary btn-sm" style="text-decoration: none;">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Criar Nova Criatura</span>
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalBestiario()">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Voltar ao Combate</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros do Bestiário -->
+            <div class="browser-filters-bar">
+                <div class="filter-group">
+                    <label>Patamar (Tier):</label>
+                    <select id="filterBestiarioTier" onchange="renderizarCatalogoBestiario()">
+                        <option value="TODOS">Todos os Patamares (1 a 4)</option>
+                        <option value="1">Patamar 1 (Nível 1)</option>
+                        <option value="2">Patamar 2 (Níveis 2–4)</option>
+                        <option value="3">Patamar 3 (Níveis 5–7)</option>
+                        <option value="4">Patamar 4 (Níveis 8–10)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Papel Tático:</label>
+                    <select id="filterBestiarioRole" onchange="renderizarCatalogoBestiario()">
+                        <option value="TODOS">Todos os Papéis</option>
+                        <option value="Solo">Solo</option>
+                        <option value="Líder">Líder</option>
+                        <option value="Bruto">Bruto</option>
+                        <option value="Atirador">Atirador</option>
+                        <option value="Furtivo">Furtivo</option>
+                        <option value="Guerrilheiro">Guerrilheiro</option>
+                        <option value="Padrão">Padrão</option>
+                        <option value="Suporte">Suporte</option>
+                        <option value="Horda">Horda</option>
+                        <option value="Lacaio">Lacaio</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="flex: 1;">
+                    <label><i class="fa-solid fa-magnifying-glass"></i></label>
+                    <input type="text" id="filterBestiarioBusca" placeholder="Buscar criatura por nome, ataque ou habilidade..." oninput="renderizarCatalogoBestiario()" style="width: 100%;">
+                </div>
+            </div>
+
+            <!-- Grid de Cards do Bestiário -->
+            <div id="bestiaryCardsGrid" class="browser-cards-grid bestiary-cards-grid"></div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="navbar.js"></script>
+    <script src="combate.js"></script>
+</body>
+</html>

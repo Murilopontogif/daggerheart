@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daggerheart VTT | Bestiário & Forja de Criaturas</title>
+    <!-- Google Fonts: Cinzel (Fantasy Display) + Plus Jakarta Sans (Clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Barra de Navegação e Hero Header Injetados por navbar.js -->
+        <div id="globalNavbarContainer"></div>
+
+        <!-- SEÇÃO DO BESTIÁRIO E CRIAÇÃO DE CRIATURAS (EXCLUSIVO MESTRE) -->
+        <section class="card glass-card full-width-section">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="icon-box icon-crimson">
+                        <i class="fa-solid fa-dragon"></i>
+                    </div>
+                    <div>
+                        <h2>Bestiário Oficial & Forja de Criaturas</h2>
+                        <span class="card-subtitle" id="bestiaryCountLabel">Catálogo de Ameaças e Criador de Monstros Customizados para o Mestre</span>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button type="button" class="btn btn-accent btn-sm" onclick="abrirModalNovaCriatura()">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Criar Nova Criatura</span>
+                    </button>
+                    <a href="combate.html" class="btn btn-primary btn-sm" style="text-decoration: none;">
+                        <i class="fa-solid fa-swords"></i>
+                        <span>Ir para a Arena de Combate</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Barra de Filtros do Bestiário -->
+            <div class="browser-filters-bar" style="border-radius: 12px; margin-bottom: 22px; border: 1px solid rgba(255,255,255,0.08);">
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-layer-group"></i> Patamar:</label>
+                    <select id="filtroTier" onchange="filtrarBestiario()">
+                        <option value="">Todos os Patamares (1 a 4)</option>
+                        <option value="1">Patamar 1 (Nível 1)</option>
+                        <option value="2">Patamar 2 (Níveis 2–4)</option>
+                        <option value="3">Patamar 3 (Níveis 5–7)</option>
+                        <option value="4">Patamar 4 (Níveis 8–10)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-chess-knight"></i> Papel Tático:</label>
+                    <select id="filtroPapel" onchange="filtrarBestiario()">
+                        <option value="">Todos os Papéis</option>
+                        <option value="Solo">Solo</option>
+                        <option value="Líder">Líder</option>
+                        <option value="Bruto">Bruto</option>
+                        <option value="Atirador">Atirador</option>
+                        <option value="Furtivo">Furtivo</option>
+                        <option value="Guerrilheiro">Guerrilheiro</option>
+                        <option value="Padrão">Padrão</option>
+                        <option value="Suporte">Suporte</option>
+                        <option value="Horda">Horda</option>
+                        <option value="Lacaio">Lacaio</option>
+                        <option value="Social">Social</option>
+                    </select>
+                </div>
+
+                <div class="filter-group" style="flex: 1;">
+                    <label><i class="fa-solid fa-magnifying-glass"></i></label>
+                    <input type="text" id="filtroNome" placeholder="Buscar criatura pelo nome, tática ou habilidade..." oninput="filtrarBestiario()" style="width: 100%;">
+                </div>
+            </div>
+
+            <!-- Status / Feedback -->
+            <div id="statusContainer" class="status-container" style="display: none;">
+                <p id="mensagemFeedback" class="status-badge"></p>
+            </div>
+
+            <!-- Grid de Cards do Bestiário -->
+            <div id="gridBestiario" class="cards-grid bestiary-cards-grid"></div>
+        </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DE VISUALIZAÇÃO COMPLETA DA CRIATURA & TODAS AS HABILIDADES     -->
+    <!-- ===================================================================== -->
+    <div id="modalDetalhesCriatura" class="sheet-modal-backdrop" style="display: none;">
+        <div class="sheet-modal-dialog" style="max-width: 880px; max-height: 92vh;">
+            <div class="sheet-modal-topbar">
+                <div class="topbar-left">
+                    <span class="sheet-tag"><i class="fa-solid fa-book-skull"></i> BESTIÁRIO OFICIAL — FICHA COMPLETA DO ADVERSÁRIO</span>
+                </div>
+                <div class="topbar-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalDetalhesCriatura()">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Fechar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sheet-paper" id="detalhesCriaturaCorpo" style="overflow-y: auto; padding: 24px;">
+                <!-- Conteúdo preenchido dinamicamente via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL DE CRIAÇÃO DE NOVA CRIATURA (ESTILIZADO COM CYBER-FORM RPG)     -->
+    <!-- ===================================================================== -->
+    <div id="modalCriarCriatura" class="sheet-modal-backdrop" style="display: none;">
+        <div class="sheet-modal-dialog" style="max-width: 820px; height: auto; max-height: 92vh;">
+            <div class="sheet-modal-topbar">
+                <div class="topbar-left">
+                    <span class="sheet-tag"><i class="fa-solid fa-dragon"></i> FORJA DE NOVA CRIATURA / ADVERSÁRIO</span>
+                </div>
+                <div class="topbar-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalNovaCriatura()">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>Fechar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sheet-paper">
+                <form id="formNovaCriatura" class="cyber-form rpg-form">
+                    <!-- Foto & Nome -->
+                    <div class="input-group">
+                        <label for="cImagem"><i class="fa-solid fa-camera"></i> Imagem / Token da Criatura (URL)</label>
+                        <div class="photo-input-layout">
+                            <div class="avatar-preview-box" style="width: 64px; height: 64px;">
+                                <img id="cPreviewImg" src="" alt="Preview" class="avatar-preview-img" style="display: none;">
+                                <i id="cPreviewPlaceholder" class="fa-solid fa-skull avatar-placeholder"></i>
+                            </div>
+                            <div class="input-wrapper flex-1">
+                                <input type="text" id="cImagem" placeholder="Cole a URL da imagem ou escolha um preset abaixo..." oninput="atualizarPreviewCriatura()">
+                                <i class="fa-solid fa-link field-icon"></i>
+                            </div>
+                        </div>
+                        <div class="preset-avatars">
+                            <span class="preset-label">Presets:</span>
+                            <button type="button" class="btn-preset" onclick="setImagemPresetCriatura('img/enemies/dragao_anciao.png')">Dragão</button>
+                            <button type="button" class="btn-preset" onclick="setImagemPresetCriatura('img/enemies/necromante.png')">Necromante</button>
+                            <button type="button" class="btn-preset" onclick="setImagemPresetCriatura('img/enemies/bandido_lider.png')">Líder Bandido</button>
+                            <button type="button" class="btn-preset" onclick="setImagemPresetCriatura('img/enemies/esqueleto_ guerreiro.png')">Morto-Vivo</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group flex-2">
+                            <label for="cNome"><i class="fa-solid fa-skull"></i> Nome da Criatura *</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="cNome" required placeholder="Ex: Quimera das Cinzas">
+                                <i class="fa-solid fa-signature field-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group flex-1">
+                            <label for="cPatamar"><i class="fa-solid fa-layer-group"></i> Patamar (Tier)</label>
+                            <div class="input-wrapper">
+                                <select id="cPatamar">
+                                    <option value="1">Patamar 1 (Nv 1)</option>
+                                    <option value="2">Patamar 2 (Nv 2–4)</option>
+                                    <option value="3">Patamar 3 (Nv 5–7)</option>
+                                    <option value="4">Patamar 4 (Nv 8–10)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-group flex-1">
+                            <label for="cPapel"><i class="fa-solid fa-chess-knight"></i> Papel Tático</label>
+                            <div class="input-wrapper">
+                                <select id="cPapel">
+                                    <option value="Padrão">Padrão</option>
+                                    <option value="Solo">Solo</option>
+                                    <option value="Líder">Líder</option>
+                                    <option value="Bruto">Bruto</option>
+                                    <option value="Atirador">Atirador</option>
+                                    <option value="Furtivo">Furtivo</option>
+                                    <option value="Guerrilheiro">Guerrilheiro</option>
+                                    <option value="Suporte">Suporte</option>
+                                    <option value="Horda">Horda</option>
+                                    <option value="Lacaio">Lacaio</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Atributos de Combate da Criatura -->
+                    <div class="attributes-section">
+                        <div class="section-badge">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>ESTATÍSTICAS DE COMBATE DA CRIATURA</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group flex-1">
+                                <label for="cDificuldade"><i class="fa-solid fa-bullseye"></i> Dificuldade</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="cDificuldade" value="13" min="5" max="30">
+                                </div>
+                            </div>
+                            <div class="input-group flex-1">
+                                <label for="cLimiares"><i class="fa-solid fa-burst"></i> Limiares (Maior / Grave)</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="cLimiares" value="8 / 15" placeholder="Ex: 8 / 15">
+                                </div>
+                            </div>
+                            <div class="input-group flex-1">
+                                <label for="cPvMax"><i class="fa-solid fa-heart"></i> Vida Máxima (PV)</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="cPvMax" value="6" min="1" max="30">
+                                </div>
+                            </div>
+                            <div class="input-group flex-1">
+                                <label for="cPfMax"><i class="fa-solid fa-bolt"></i> Fadiga Máxima (PF)</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="cPfMax" value="3" min="0" max="20">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ataque Padrão -->
+                    <div class="form-row">
+                        <div class="input-group flex-1">
+                            <label for="cBonusAtaque"><i class="fa-solid fa-crosshairs"></i> Bônus de Ataque</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="cBonusAtaque" value="+2" placeholder="Ex: +3">
+                            </div>
+                        </div>
+                        <div class="input-group flex-2">
+                            <label for="cNomeAtaque"><i class="fa-solid fa-gavel"></i> Nome e Alcance do Ataque</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="cNomeAtaque" placeholder="Ex: Garras Dilacerantes (Corpo a Corpo)">
+                            </div>
+                        </div>
+                        <div class="input-group flex-1">
+                            <label for="cDanoAtaque"><i class="fa-solid fa-dice-d20"></i> Rolagem de Dano</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="cDanoAtaque" value="1d10+3 Físico">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="cTaticas"><i class="fa-solid fa-compass"></i> Motivação & Táticas</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="cTaticas" placeholder="Ex: Emboscar alvos isolados, proteger o covil, intimidar...">
+                        </div>
+                    </div>
+
+                    <!-- Habilidades Dinâmicas da Criatura -->
+                    <div class="sheet-section-box">
+                        <div class="sheet-ribbon-title-with-dots">
+                            <span><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-gold); margin-right: 6px;"></i> HABILIDADES ESPECIAIS DA CRIATURA</span>
+                            <button type="button" class="btn btn-primary btn-sm" style="padding: 4px 10px; font-size: 0.72rem;" onclick="adicionarLinhaHabilidadeCriatura()">
+                                <i class="fa-solid fa-plus"></i> Adicionar Habilidade
+                            </button>
+                        </div>
+                        <div id="listaHabilidadesCriatura" class="inv-items-list"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px;">
+                        <button type="button" class="btn btn-secondary" onclick="fecharModalNovaCriatura()">Cancelar</button>
+                        <button type="submit" id="btnSalvarCriatura" class="btn btn-accent">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Salvar Criatura no Bestiário</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="navbar.js"></script>
+    <script src="criaturas.js"></script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daggerheart VTT | Painel da Conta Pai (mumu)</title>
+    <!-- Google Fonts: Cinzel (Fantasy Display) + Plus Jakarta Sans (Clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Ambient Background Glows -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+
+    <div class="app-container">
+        <!-- Barra de Navegação e Hero Header Injetados por navbar.js -->
+        <div id="globalNavbarContainer"></div>
+
+        <!-- DASHBOARD DE ADMINISTRAÇÃO DA CONTA PAI (MUMU) -->
+        <main class="dashboard-grid">
+            <!-- Coluna Esquerda: Tabela de Contas, Logins e Senhas -->
+            <section class="card glass-card list-section">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="icon-box icon-gold">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <div>
+                            <h2>Contas, Logins & Senhas da Mesa</h2>
+                            <span class="card-subtitle">Acesso exclusivo da Conta Pai (mumu) para visualização de credenciais e auditoria LGPD</span>
+                        </div>
+                    </div>
+
+                    <div class="header-actions">
+                        <span id="contagemUsuarios" class="col-count-pill">0 Contas</span>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="carregarUsuarios()">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>Atualizar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status / Feedback -->
+                <div id="statusContainer" class="status-container" style="display: none;">
+                    <p id="mensagemAdmin" class="status-badge"></p>
+                </div>
+
+                <!-- Tabela de Contas -->
+                <div class="table-responsive">
+                    <table class="cyber-table rpg-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Login do Usuário</th>
+                                <th>Senha Cadastrada</th>
+                                <th>Papel na Mesa</th>
+                                <th>Termo LGPD</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaUsuariosCorpo">
+                            <!-- Preenchido via admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Nota de Conformidade LGPD -->
+                <div class="class-domains-hint" style="margin-top: 20px;">
+                    <i class="fa-solid fa-scale-balanced" style="color: var(--accent-gold); font-size: 1.1rem;"></i>
+                    <span>
+                        <strong>Conformidade LGPD (Lei nº 13.709/2018):</strong> Ao excluir uma conta de usuário, todas as fichas associadas a ela são permanentemente removidas do banco de dados em respeito ao direito ao esquecimento.
+                    </span>
+                </div>
+            </section>
+
+            <!-- Coluna Direita: Formulário de Criação de Nova Conta -->
+            <aside class="card glass-card form-section">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="icon-box icon-purple">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h2>Criar Nova Conta</h2>
+                            <span class="card-subtitle">Cadastre jogadores ou mestres para acessar o sistema</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formCriarUsuario" class="cyber-form rpg-form">
+                    <div class="input-group">
+                        <label for="novoUserLogin"><i class="fa-solid fa-user-shield"></i> Login / Usuário *</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="novoUserLogin" required placeholder="Ex: jogador_arthur">
+                            <i class="fa-solid fa-signature field-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="novoUserSenha"><i class="fa-solid fa-lock"></i> Senha de Acesso *</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="novoUserSenha" required placeholder="Digite a senha da conta...">
+                            <i class="fa-solid fa-key field-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="novoUserPapel"><i class="fa-solid fa-chess-king"></i> Papel na Mesa (Coluna Player/Mestre) *</label>
+                        <div class="input-wrapper">
+                            <select id="novoUserPapel">
+                                <option value="player" selected>Jogador (Player) — Acessa apenas suas fichas</option>
+                                <option value="mestre">Mestre (GM) — Acessa todas as fichas e criaturas</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btnSubmitNovoUser" class="btn btn-accent btn-full">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>Cadastrar Conta na Mesa</span>
+                        </button>
+                    </div>
+                </form>
+            </aside>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="navbar.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

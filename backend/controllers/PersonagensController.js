@@ -2,16 +2,70 @@ import { pool } from "../database/conexao.js";
 
 async function listarPersonagens(req, res) {
     try {
-        const [personagens] = await pool.query("SELECT * FROM PERSONAGENS ORDER BY ID ASC");
+        const isMestre = req.user && req.user.papel === "mestre";
+        const userId = req.user ? req.user.id : 1;
+
+        let querySql;
+        let queryParams = [];
+
+        if (isMestre) {
+            querySql = `
+                SELECT p.*, u.LOGIN as CRIADOR_NOME 
+                FROM PERSONAGENS p 
+                LEFT JOIN USUARIOS u ON p.USUARIO_ID = u.ID 
+                ORDER BY p.ID ASC
+            `;
+        } else {
+            querySql = `
+                SELECT p.*, u.LOGIN as CRIADOR_NOME 
+                FROM PERSONAGENS p 
+                LEFT JOIN USUARIOS u ON p.USUARIO_ID = u.ID 
+                WHERE p.USUARIO_ID = ? 
+                ORDER BY p.ID ASC
+            `;
+            queryParams = [userId];
+        }
+
+        const [personagens] = await pool.query(querySql, queryParams);
         res.status(200).json(personagens);
     } catch (erro) {
-        console.log("Erro ao buscar personagens:", erro);
-        res.status(500).json({ mensagem: "erro ao buscar personagens" });
+        console.error("Erro ao buscar personagens:", erro);
+        res.status(500).json({ mensagem: "Erro ao buscar personagens." });
+    }
+}
+
+async function buscarPersonagemPorId(req, res) {
+    try {
+        const id = Number(req.params.id);
+        const [personagens] = await pool.query(
+            `SELECT p.*, u.LOGIN as CRIADOR_NOME 
+             FROM PERSONAGENS p 
+             LEFT JOIN USUARIOS u ON p.USUARIO_ID = u.ID 
+             WHERE p.ID = ?`,
+            [id]
+        );
+
+        if (!personagens || personagens.length === 0) {
+            return res.status(404).json({ mensagem: "Personagem não encontrado." });
+        }
+
+        const p = personagens[0];
+        const isMestre = req.user && req.user.papel === "mestre";
+        if (!isMestre && req.user && p.USUARIO_ID !== req.user.id) {
+            return res.status(403).json({ mensagem: "Você não tem permissão para visualizar este personagem." });
+        }
+
+        res.status(200).json(p);
+    } catch (erro) {
+        console.error("Erro ao buscar personagem por ID:", erro);
+        res.status(500).json({ mensagem: "Erro ao buscar personagem." });
     }
 }
 
 async function adicionarPersonagem(req, res) {
     try {
+        const usuarioId = req.user ? req.user.id : 1;
+
         const {
             NOME,
             CLASSE,
@@ -54,7 +108,7 @@ async function adicionarPersonagem(req, res) {
         } = req.body;
 
         if (!NOME || !CLASSE || !ANCESTRALIDADE || !COMUNIDADE) {
-            return res.status(400).json({ mensagem: "preencha todos os campos obrigatórios" });
+            return res.status(400).json({ mensagem: "Preencha todos os campos obrigatórios (Nome, Classe, Ancestralidade e Comunidade)." });
         }
 
         const [resultado] = await pool.query(
@@ -65,8 +119,8 @@ async function adicionarPersonagem(req, res) {
              DANO_MENOR, DANO_MAIOR, DANO_GRAVE, EXPERIENCIAS, HABILIDADES_CLASSE, 
              HABILIDADE_SUBCLASSE, HABILIDADE_COMUNIDADE, HABILIDADE_RACA,
              OURO_PUNHADOS, OURO_BOLSAS, OURO_BAU, ARMA_PRINCIPAL, ARMA_SECUNDARIA, 
-             ARMADURA_ATIVA, INVENTARIO, CARTAS_DOMINIO, IMAGEM) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             ARMADURA_ATIVA, INVENTARIO, CARTAS_DOMINIO, IMAGEM, USUARIO_ID) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 NOME,
                 CLASSE,
@@ -103,39 +157,36 @@ async function adicionarPersonagem(req, res) {
                 typeof ARMA_PRINCIPAL === "object" ? JSON.stringify(ARMA_PRINCIPAL) : ARMA_PRINCIPAL,
                 typeof ARMA_SECUNDARIA === "object" ? JSON.stringify(ARMA_SECUNDARIA) : ARMA_SECUNDARIA,
                 typeof ARMADURA_ATIVA === "object" ? JSON.stringify(ARMADURA_ATIVA) : ARMADURA_ATIVA,
-                INVENTARIO,
+                typeof INVENTARIO === "object" ? JSON.stringify(INVENTARIO) : INVENTARIO,
                 typeof CARTAS_DOMINIO === "object" ? JSON.stringify(CARTAS_DOMINIO) : CARTAS_DOMINIO,
-                IMAGEM || null
+                IMAGEM || null,
+                usuarioId
             ]
         );
 
         res.status(201).json({
-            mensagem: "personagem cadastrado com sucesso",
+            mensagem: "Personagem cadastrado com sucesso!",
             id: resultado.insertId
         });
     } catch (erro) {
-        console.log("Erro ao cadastrar personagem:", erro);
-        res.status(500).json({ mensagem: "erro ao cadastrar personagem" });
-    }
-}
-
-async function buscarPersonagemPorId(req, res) {
-    try {
-        const id = req.params.id;
-        const [personagens] = await pool.query("SELECT * FROM PERSONAGENS WHERE ID = ?", [id]);
-        if (personagens.length === 0) {
-            return res.status(404).json({ mensagem: "personagem não encontrado" });
-        }
-        res.status(200).json(personagens[0]);
-    } catch (erro) {
-        console.log("Erro ao buscar personagem:", erro);
-        res.status(500).json({ mensagem: "erro ao buscar personagem" });
+        console.error("Erro ao adicionar personagem:", erro);
+        res.status(500).json({ mensagem: "Erro ao cadastrar personagem no banco de dados." });
     }
 }
 
 async function atualizarPersonagem(req, res) {
     try {
-        const id = req.params.id;
+        const id = Number(req.params.id);
+        const [existente] = await pool.query("SELECT USUARIO_ID FROM PERSONAGENS WHERE ID = ?", [id]);
+        if (!existente || existente.length === 0) {
+            return res.status(404).json({ mensagem: "Personagem não encontrado." });
+        }
+
+        const isMestre = req.user && req.user.papel === "mestre";
+        if (!isMestre && req.user && existente[0].USUARIO_ID !== req.user.id) {
+            return res.status(403).json({ mensagem: "Você só pode editar personagens criados por você." });
+        }
+
         const {
             NOME,
             CLASSE,
@@ -178,7 +229,7 @@ async function atualizarPersonagem(req, res) {
         } = req.body;
 
         if (!NOME || !CLASSE || !ANCESTRALIDADE || !COMUNIDADE) {
-            return res.status(400).json({ mensagem: "preencha todos os campos obrigatórios" });
+            return res.status(400).json({ mensagem: "Preencha todos os campos obrigatórios." });
         }
 
         const [resultado] = await pool.query(
@@ -228,7 +279,7 @@ async function atualizarPersonagem(req, res) {
                 typeof ARMA_PRINCIPAL === "object" ? JSON.stringify(ARMA_PRINCIPAL) : ARMA_PRINCIPAL,
                 typeof ARMA_SECUNDARIA === "object" ? JSON.stringify(ARMA_SECUNDARIA) : ARMA_SECUNDARIA,
                 typeof ARMADURA_ATIVA === "object" ? JSON.stringify(ARMADURA_ATIVA) : ARMADURA_ATIVA,
-                INVENTARIO,
+                typeof INVENTARIO === "object" ? JSON.stringify(INVENTARIO) : INVENTARIO,
                 typeof CARTAS_DOMINIO === "object" ? JSON.stringify(CARTAS_DOMINIO) : CARTAS_DOMINIO,
                 IMAGEM || null,
                 id
@@ -236,27 +287,37 @@ async function atualizarPersonagem(req, res) {
         );
 
         if (resultado.affectedRows === 0) {
-            return res.status(404).json({ mensagem: "personagem não encontrado" });
+            return res.status(404).json({ mensagem: "Personagem não encontrado." });
         }
 
-        res.status(200).json({ mensagem: "personagem atualizado com sucesso" });
+        res.status(200).json({ mensagem: "Personagem atualizado com sucesso!" });
     } catch (erro) {
-        console.log("Erro ao atualizar personagem:", erro);
-        res.status(500).json({ mensagem: "erro ao atualizar personagem" });
+        console.error("Erro ao atualizar personagem:", erro);
+        res.status(500).json({ mensagem: "Erro ao atualizar personagem." });
     }
 }
 
 async function deletarPersonagem(req, res) {
     try {
-        const id = req.params.id;
-        const [resultado] = await pool.query("DELETE FROM PERSONAGENS WHERE ID = ?", [id]);
-        if (resultado.affectedRows === 0) {
-            return res.status(404).json({ mensagem: "personagem não encontrado" });
+        const id = Number(req.params.id);
+        const [existente] = await pool.query("SELECT USUARIO_ID FROM PERSONAGENS WHERE ID = ?", [id]);
+        if (!existente || existente.length === 0) {
+            return res.status(404).json({ mensagem: "Personagem não encontrado." });
         }
-        res.status(200).json({ mensagem: "personagem deletado com sucesso" });
+
+        const isMestre = req.user && req.user.papel === "mestre";
+        if (!isMestre && req.user && existente[0].USUARIO_ID !== req.user.id) {
+            return res.status(403).json({ mensagem: "Você só pode excluir personagens criados por você." });
+        }
+
+        // Remover do combate se estiver presente
+        await pool.query("DELETE FROM COMBATE_HEROIS WHERE PERSONAGEM_ID = ?", [id]);
+        await pool.query("DELETE FROM PERSONAGENS WHERE ID = ?", [id]);
+
+        res.status(200).json({ mensagem: "Personagem deletado com sucesso!" });
     } catch (erro) {
-        console.log("Erro ao deletar personagem:", erro);
-        res.status(500).json({ mensagem: "erro ao deletar personagem" });
+        console.error("Erro ao deletar personagem:", erro);
+        res.status(500).json({ mensagem: "Erro ao deletar personagem." });
     }
 }
 
@@ -289,33 +350,45 @@ async function listarDadosSistema(req, res) {
             description: c.DESCRICAO
         }));
 
-        const ENEMIES = inimigosRows.map(e => ({
-            id: e.ID,
-            name: e.NOME,
-            tier: e.PATAMAR,
-            role: e.PAPEL,
-            hordeCount: e.CONTAGEM_HORDA,
-            description: e.DESCRICAO,
-            tactics: e.TATICAS,
-            difficulty: e.DIFICULDADE,
-            thresholds: e.LIMIARES,
-            hpMax: e.PV_MAXIMO,
-            stressMax: e.PF_MAXIMO,
-            atkBonus: e.BONUS_ATAQUE,
-            attackName: e.NOME_ATAQUE,
-            attackDamage: e.DANO_ATAQUE,
-            experiences: e.EXPERIENCIAS,
-            abilities: typeof e.HABILIDADES === "string" ? JSON.parse(e.HABILIDADES) : e.HABILIDADES,
-            image: e.IMAGEM
-        }));
+        const isMestre = req.user && req.user.papel === "mestre";
+
+        const ENEMIES = inimigosRows.map(e => {
+            if (!isMestre) {
+                return {
+                    id: e.ID,
+                    name: e.NOME,
+                    tier: e.PATAMAR,
+                    image: e.IMAGEM || "img/enemies/placeholder.png"
+                };
+            }
+            return {
+                id: e.ID,
+                name: e.NOME,
+                tier: e.PATAMAR,
+                role: e.PAPEL,
+                hordeCount: e.CONTAGEM_HORDA,
+                description: e.DESCRICAO,
+                tactics: e.TATICAS,
+                difficulty: e.DIFICULDADE,
+                thresholds: e.LIMIARES,
+                hpMax: e.PV_MAXIMO,
+                stressMax: e.PF_MAXIMO,
+                atkBonus: e.BONUS_ATAQUE,
+                attackName: e.NOME_ATAQUE,
+                attackDamage: e.DANO_ATAQUE,
+                experiences: e.EXPERIENCIAS,
+                abilities: typeof e.HABILIDADES === "string" ? JSON.parse(e.HABILIDADES) : e.HABILIDADES,
+                image: e.IMAGEM || "img/enemies/placeholder.png"
+            };
+        });
 
         res.status(200).json({
             DAGGERHEART_DATA: { CLASSES, SUBCLASSES, ANCESTRALIDADES, COMUNIDADES, CARTAS },
             DAGGERHEART_ENEMIES: ENEMIES
         });
     } catch (erro) {
-        console.log("Erro ao buscar dados do sistema:", erro);
-        res.status(500).json({ mensagem: "erro ao buscar dados do sistema no banco de dados" });
+        console.error("Erro ao buscar dados do sistema:", erro);
+        res.status(500).json({ mensagem: "Erro ao buscar dados do sistema no banco de dados." });
     }
 }
 
@@ -327,4 +400,3 @@ export {
     deletarPersonagem,
     listarDadosSistema
 };
-

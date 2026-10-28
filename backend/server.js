@@ -3,6 +3,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
 import personagensRoutes from "./routes/personagensRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import criaturasRoutes from "./routes/criaturasRoutes.js";
+import combateRoutes from "./routes/combateRoutes.js";
 import corsMiddleware from "./middlewares/corsMiddleware.js";
 import { testarconexao } from "./database/conexao.js";
 
@@ -16,10 +19,14 @@ app.use(corsMiddleware);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.static(path.join(__dirname, "../frontend")));
 
+// Rotas da API
+app.use("/api/auth", authRoutes);
+app.use("/api/criaturas", criaturasRoutes);
+app.use("/api/combate", combateRoutes);
 app.use("/personagens", personagensRoutes);
 
 app.get("/api/status", function (req, res) {
-    res.status(200).json({ mensagem: "API do Daggerheart - Gerenciador de Fichas funcionando" });
+    res.status(200).json({ mensagem: "API do Daggerheart - Gerenciador de Fichas e Combate funcionando" });
 });
 
 async function iniciarservidor() {
