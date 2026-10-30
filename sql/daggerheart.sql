@@ -1,12 +1,41 @@
 -- ==========================================================================
--- BANCO DE DADOS COMPLETO DAGGERHEART RPG (FICHAS, CARTAS, INIMIGOS E SKILLS)
+-- BANCO DE DADOS COMPLETO DAGGERHEART RPG (SISTEMA VTT WEB)
+-- FICHAS, USUÁRIOS, ARENA DE COMBATE, CARTAS, BESTIÁRIO E REGRAS DO SISTEMA
 -- ==========================================================================
 
 CREATE DATABASE IF NOT EXISTS DAGGERHEART CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE DAGGERHEART;
 
-CREATE TABLE IF NOT EXISTS PERSONAGENS (
+-- --------------------------------------------------------------------------
+-- 1. LIMPEZA PREVENTIVA DE TABELAS (ORDEM INVERSA DE DEPENDÊNCIA)
+-- --------------------------------------------------------------------------
+DROP TABLE IF EXISTS COMBATE_HEROIS;
+DROP TABLE IF EXISTS COMBATE_CRIATURAS;
+DROP TABLE IF EXISTS COMBATE_ESTADO;
+DROP TABLE IF EXISTS PERSONAGENS;
+DROP TABLE IF EXISTS USUARIOS;
+DROP TABLE IF EXISTS REGRAS_SISTEMA;
+DROP TABLE IF EXISTS CARTAS_DOMINIO;
+DROP TABLE IF EXISTS INIMIGOS;
+
+-- --------------------------------------------------------------------------
+-- 2. TABELA DE USUÁRIOS (AUTENTICAÇÃO, CONTROLE DE ACESSO E CONFORMIDADE LGPD)
+-- --------------------------------------------------------------------------
+CREATE TABLE USUARIOS (
     ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    LOGIN VARCHAR(50) UNIQUE NOT NULL,
+    SENHA VARCHAR(255) NOT NULL,
+    PAPEL VARCHAR(20) NOT NULL DEFAULT 'player', -- 'mestre' ou 'player'
+    LGPD_ACEITE BOOLEAN NOT NULL DEFAULT 1,
+    DATA_CRIACAO DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- --------------------------------------------------------------------------
+-- 3. TABELA DE PERSONAGENS (FICHAS COMPLETAS DE RPG)
+-- --------------------------------------------------------------------------
+CREATE TABLE PERSONAGENS (
+    ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    USUARIO_ID INT NOT NULL DEFAULT 1,
     NOME VARCHAR(100) NOT NULL,
     CLASSE VARCHAR(50) NOT NULL,
     SUBCLASSE VARCHAR(100) DEFAULT '',
@@ -25,9 +54,12 @@ CREATE TABLE IF NOT EXISTS PERSONAGENS (
     EVASAO INT NOT NULL DEFAULT 10,
     ARMADURA INT NOT NULL DEFAULT 0,
     ARMADURA_SLOTS INT NOT NULL DEFAULT 6,
+    ARMADURA_ATUAL INT NOT NULL DEFAULT 0,
     ESPERANCA INT NOT NULL DEFAULT 2,
     PV_MAXIMO INT NOT NULL DEFAULT 6,
+    PV_ATUAL INT NOT NULL DEFAULT 6,
     PF_MAXIMO INT NOT NULL DEFAULT 6,
+    PF_ATUAL INT NOT NULL DEFAULT 0,
     DANO_MENOR INT NOT NULL DEFAULT 1,
     DANO_MAIOR INT NOT NULL DEFAULT 2,
     DANO_GRAVE INT NOT NULL DEFAULT 3,
@@ -44,10 +76,13 @@ CREATE TABLE IF NOT EXISTS PERSONAGENS (
     ARMADURA_ATIVA TEXT,
     INVENTARIO TEXT,
     CARTAS_DOMINIO TEXT,
-    IMAGEM LONGTEXT
+    IMAGEM LONGTEXT,
+    FOREIGN KEY (USUARIO_ID) REFERENCES USUARIOS(ID) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS REGRAS_SISTEMA;
+-- --------------------------------------------------------------------------
+-- 4. TABELA DE REGRAS DO SISTEMA (CLASSES, SUBCLASSES, ANCESTRALIDADES E COMUNIDADES)
+-- --------------------------------------------------------------------------
 CREATE TABLE REGRAS_SISTEMA (
     ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     CATEGORIA VARCHAR(50) NOT NULL,
@@ -55,7 +90,9 @@ CREATE TABLE REGRAS_SISTEMA (
     DADOS JSON NOT NULL
 );
 
-DROP TABLE IF EXISTS CARTAS_DOMINIO;
+-- --------------------------------------------------------------------------
+-- 5. TABELA DE CARTAS DE DOMÍNIO
+-- --------------------------------------------------------------------------
 CREATE TABLE CARTAS_DOMINIO (
     ID INT PRIMARY KEY NOT NULL,
     NOME VARCHAR(150) NOT NULL,
@@ -66,7 +103,9 @@ CREATE TABLE CARTAS_DOMINIO (
     DESCRICAO TEXT NOT NULL
 );
 
-DROP TABLE IF EXISTS INIMIGOS;
+-- --------------------------------------------------------------------------
+-- 6. TABELA DE BESTIÁRIO (INIMIGOS E ADVERSÁRIOS)
+-- --------------------------------------------------------------------------
 CREATE TABLE INIMIGOS (
     ID INT PRIMARY KEY NOT NULL,
     NOME VARCHAR(150) NOT NULL,
@@ -86,6 +125,98 @@ CREATE TABLE INIMIGOS (
     HABILIDADES JSON NOT NULL,
     IMAGEM VARCHAR(255) DEFAULT ''
 );
+
+-- --------------------------------------------------------------------------
+-- 7. TABELA DE INSTÂNCIAS DE COMBATE - HERÓIS
+-- --------------------------------------------------------------------------
+CREATE TABLE COMBATE_HEROIS (
+    ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    PERSONAGEM_ID INT NOT NULL,
+    PV_ATUAL INT NOT NULL DEFAULT 6,
+    PF_ATUAL INT NOT NULL DEFAULT 0,
+    ARMADURA_MARCADA INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (PERSONAGEM_ID) REFERENCES PERSONAGENS(ID) ON DELETE CASCADE
+);
+
+-- --------------------------------------------------------------------------
+-- 8. TABELA DE INSTÂNCIAS DE COMBATE - CRIATURAS
+-- --------------------------------------------------------------------------
+CREATE TABLE COMBATE_CRIATURAS (
+    ID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    INIMIGO_ID INT NOT NULL,
+    NOME_INSTANCIA VARCHAR(150) NOT NULL,
+    PV_ATUAL INT NOT NULL DEFAULT 1,
+    PF_ATUAL INT NOT NULL DEFAULT 0,
+    ARMADURA_MARCADA INT NOT NULL DEFAULT 0,
+    ARMADURA_MAXIMA INT NOT NULL DEFAULT 0,
+    NOTAS TEXT,
+    FOREIGN KEY (INIMIGO_ID) REFERENCES INIMIGOS(ID) ON DELETE CASCADE
+);
+
+-- --------------------------------------------------------------------------
+-- 9. TABELA DE ESTADO GLOBAL DE COMBATE (PONTOS DE MEDO DO MESTRE)
+-- --------------------------------------------------------------------------
+CREATE TABLE COMBATE_ESTADO (
+    ID INT PRIMARY KEY NOT NULL,
+    FEAR_POINTS INT NOT NULL DEFAULT 0
+);
+
+-- --------------------------------------------------------------------------
+-- 10. CARGA INICIAL DE USUÁRIOS
+-- --------------------------------------------------------------------------
+INSERT INTO USUARIOS (ID, LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES
+(1, 'mumu', 'irado', 'mestre', 1),
+(2, 'jogador1', '123456', 'player', 1),
+(3, 'jogador2', '123456', 'player', 1);
+
+-- --------------------------------------------------------------------------
+-- 11. CARGA INICIAL DO ESTADO DO COMBATE
+-- --------------------------------------------------------------------------
+INSERT INTO COMBATE_ESTADO (ID, FEAR_POINTS) VALUES
+(1, 0);
+
+-- --------------------------------------------------------------------------
+-- 12. CARGA INICIAL DE PERSONAGENS DE EXEMPLO
+-- --------------------------------------------------------------------------
+INSERT INTO PERSONAGENS 
+(ID, USUARIO_ID, NOME, CLASSE, SUBCLASSE, ANCESTRALIDADE, ANCESTRALIDADE_SECUNDARIA, ANCESTRALIDADE_TIPO, COMUNIDADE, NIVEL, GENERO, 
+ AGILIDADE, FORCA, ACUIDADE, INSTINTO, PRESENCA, CONHECIMENTO, 
+ EVASAO, ARMADURA, ARMADURA_SLOTS, ARMADURA_ATUAL, ESPERANCA, PV_MAXIMO, PV_ATUAL, PF_MAXIMO, PF_ATUAL, 
+ DANO_MENOR, DANO_MAIOR, DANO_GRAVE, EXPERIENCIAS, HABILIDADES_CLASSE, 
+ HABILIDADE_SUBCLASSE, HABILIDADE_COMUNIDADE, HABILIDADE_RACA, 
+ OURO_PUNHADOS, OURO_BOLSAS, OURO_BAU, ARMA_PRINCIPAL, ARMA_SECUNDARIA, 
+ ARMADURA_ATIVA, INVENTARIO, CARTAS_DOMINIO, IMAGEM)
+VALUES
+(1, 1, 'Thorgrim Martelo-de-Ferro', 'Guardião', 'Baluarte', 'Anão', '', 'unica', 'Montanhesa', 1, 'Masculino',
+ 0, 2, 1, 1, 0, -1,
+ 9, 3, 6, 0, 2, 7, 7, 6, 0,
+ 1, 8, 15, '[{"nome":"Ferreiro Militar","valor":"+2"},{"nome":"Sobrevivência em Cavernas","valor":"+1"}]', 
+ 'Determinação Inabalável: Uma vez por descanso longo, receba um Dado de Determinação.',
+ 'Resoluto & Vontade de Ferro: Bônus permanente de +1 nos limiares de dano.',
+ 'Firme: Vantagem em testes para cruzar abismos e altitudes inóspitas.',
+ 'Pele Espessa: Ao sofrer dano menor, pode marcar 2 PF em vez de 1 PV.',
+ 5, 1, 0, 
+ '{"nome":"Martelo de Guerra","tipo":"Corpo a corpo","dano":"d10+2","atributo":"Força"}',
+ '{"nome":"Escudo de Torre","tipo":"Defesa","dano":"-","atributo":"Força"}',
+ '{"nome":"Cota de Malha Pesada","armadura":3}',
+ '["Corda de escalada (15m)","Tochas de piche x3","Rações de viagem (5 dias)"]',
+ '[{"nome":"Levante-Se","dominio":"Lâmina","nivel":1},{"nome":"Não o Suficiente","dominio":"Lâmina","nivel":1}]',
+ NULL),
+(2, 2, 'Lyra Sombra-da-Noite', 'Ladino', 'Gatuno', 'Elfo', '', 'unica', 'Fora da Lei', 1, 'Feminino',
+ 2, 0, 2, 1, 0, -1,
+ 12, 1, 6, 0, 2, 6, 6, 6, 0,
+ 1, 7, 14, '[{"nome":"Acrobacia Urbana","valor":"+2"},{"nome":"Gazua & Furtividade","valor":"+2"}]',
+ 'Oculto & Ataque Furtivo: Permanece invisível nas sombras e causa dano extra em ataques furtivos.',
+ 'Passo Sombrio: Teletransporte de uma sombra a outra no alcance próximo.',
+ 'Malandro: Vantagem para negociar com criminosos e farejar traições.',
+ 'Reação Rápida: Marque 1 PF para receber vantagem em teste de reação.',
+ 12, 2, 0,
+ '{"nome":"Adagas Gêmeas Sibilantes","tipo":"Corpo a corpo","dano":"d8+2","atributo":"Agilidade"}',
+ '{"nome":"Besta Leve de Mão","tipo":"Distância","dano":"d8","atributo":"Agilidade"}',
+ '{"nome":"Gibão de Couro Furtivo","armadura":1}',
+ '["Kit de gazuas finas","Frasco de veneno suave","Capa com capuz escuro"]',
+ '[{"nome":"Movimento Ligeiro","dominio":"Falange","nivel":1}]',
+ NULL);
 
 -- Inserindo Regras e Skills (Classes, Subclasses, Ancestralidades e Comunidades)
 INSERT INTO REGRAS_SISTEMA (CATEGORIA, CHAVE, DADOS) VALUES

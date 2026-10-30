@@ -80,6 +80,9 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
             // Ensure USUARIO_ID exists in PERSONAGENS
             try {
                 dbOuPool.exec("ALTER TABLE PERSONAGENS ADD COLUMN USUARIO_ID INTEGER DEFAULT 1;");
+            try { dbOuPool.exec("ALTER TABLE PERSONAGENS ADD COLUMN PV_ATUAL INTEGER DEFAULT 6;"); } catch {}
+            try { dbOuPool.exec("ALTER TABLE PERSONAGENS ADD COLUMN PF_ATUAL INTEGER DEFAULT 0;"); } catch {}
+            try { dbOuPool.exec("ALTER TABLE PERSONAGENS ADD COLUMN ARMADURA_ATUAL INTEGER DEFAULT 0;"); } catch {}
             } catch {
                 // Coluna já existe
             }
