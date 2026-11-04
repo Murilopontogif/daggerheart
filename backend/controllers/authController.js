@@ -1,14 +1,17 @@
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { pool } from "../database/conexao.js";
+
+const JWT_SECRET = process.env.JWT_SECRET || "daggerheart_super_secret_jwt_key_2026";
 
 function gerarToken(usuario) {
     const payload = {
         id: usuario.ID,
         login: usuario.LOGIN,
         papel: usuario.PAPEL,
-        isPai: usuario.LOGIN.toLowerCase() === "mumu",
-        criadoEm: Date.now()
+        isPai: usuario.LOGIN.toLowerCase() === "mumu"
     };
-    return Buffer.from(JSON.stringify(payload)).toString("base64");
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 }
 
 export async function login(req, res) {
@@ -30,7 +33,26 @@ export async function login(req, res) {
 
         const usuario = usuarios[0];
 
-        if (usuario.SENHA !== senha) {
+        // Verificação segura de senha com suporte a bcrypt e migração transparente de texto puro
+        let senhaValida = false;
+        if (usuario.SENHA && (usuario.SENHA.startsWith("$2a$") || usuario.SENHA.startsWith("$2b$") || usuario.SENHA.startsWith("$2y$"))) {
+            senhaValida = await bcrypt.compare(senha, usuario.SENHA);
+        } else {
+            // Comparação direta para senhas legadas em texto puro
+            senhaValida = (usuario.SENHA === senha);
+            if (senhaValida) {
+                // Atualização automática e segura para hash bcrypt
+                try {
+                    const novoHash = await bcrypt.hash(senha, 10);
+                    await pool.query("UPDATE USUARIOS SET SENHA = ? WHERE ID = ?", [novoHash, usuario.ID]);
+                    usuario.SENHA = novoHash;
+                } catch (e) {
+                    console.warn("Aviso ao atualizar senha para hash:", e.message);
+                }
+            }
+        }
+
+        if (!senhaValida) {
             return res.status(401).json({ mensagem: "Credenciais inválidas. Verifique seu login e senha." });
         }
 
@@ -55,6 +77,70 @@ export async function login(req, res) {
     } catch (err) {
         console.error("Erro no login:", err);
         res.status(500).json({ mensagem: "Erro interno no servidor ao realizar login." });
+    }
+}
+
+export async function cadastrarUsuario(req, res) {
+    try {
+        const { login, senha, papel = "player", lgpdAceite = true } = req.body;
+
+        if (!login || !login.trim()) {
+            return res.status(400).json({ mensagem: "Informe o nome de usuário (login)." });
+        }
+
+        if (!senha || senha.length < 4) {
+            return res.status(400).json({ mensagem: "A senha deve conter no mínimo 4 caracteres." });
+        }
+
+        if (!lgpdAceite) {
+            return res.status(400).json({ mensagem: "Você deve aceitar os termos da LGPD para se cadastrar." });
+        }
+
+        const loginFormatado = login.trim();
+
+        if (loginFormatado.toLowerCase() === "mumu") {
+            return res.status(400).json({ mensagem: "O nome de usuário 'mumu' é reservado à Conta Pai." });
+        }
+
+        const [existente] = await pool.query(
+            "SELECT ID FROM USUARIOS WHERE LOWER(LOGIN) = LOWER(?)",
+            [loginFormatado]
+        );
+
+        if (existente && existente.length > 0) {
+            return res.status(409).json({ mensagem: "Este nome de usuário já está cadastrado. Escolha outro." });
+        }
+
+        const papelValido = papel.toLowerCase() === "mestre" ? "mestre" : "player";
+        const hashSenha = await bcrypt.hash(senha, 10);
+
+        const [resultado] = await pool.query(
+            "INSERT INTO USUARIOS (LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES (?, ?, ?, 1)",
+            [loginFormatado, hashSenha, papelValido]
+        );
+
+        const novoUsuario = {
+            ID: resultado.insertId,
+            LOGIN: loginFormatado,
+            PAPEL: papelValido
+        };
+
+        const token = gerarToken(novoUsuario);
+
+        res.status(201).json({
+            mensagem: `Conta '${loginFormatado}' criada com sucesso!`,
+            token,
+            usuario: {
+                id: novoUsuario.ID,
+                login: novoUsuario.LOGIN,
+                papel: novoUsuario.PAPEL,
+                isPai: false,
+                lgpdAceite: true
+            }
+        });
+    } catch (err) {
+        console.error("Erro ao cadastrar usuário:", err);
+        res.status(500).json({ mensagem: "Erro interno no servidor ao cadastrar usuário." });
     }
 }
 
@@ -109,10 +195,11 @@ export async function criarUsuario(req, res) {
         }
 
         const papelValido = papel.toLowerCase() === "mestre" ? "mestre" : "player";
+        const hashSenha = await bcrypt.hash(senha, 10);
 
         const [resultado] = await pool.query(
             "INSERT INTO USUARIOS (LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES (?, ?, ?, ?)",
-            [login.trim(), senha, papelValido, lgpdAceite ? 1 : 0]
+            [login.trim(), hashSenha, papelValido, lgpdAceite ? 1 : 0]
         );
 
         res.status(201).json({

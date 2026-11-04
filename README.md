@@ -329,6 +329,8 @@ erDiagram
 ### Back-end
 - **Node.js (v18+)**: Ambiente de execução JavaScript assíncrono baseado no motor V8.
 - **Express (v4.21+)**: Framework web minimalista e robusto para criação de rotas, controllers e middlewares REST.
+- **JSON Web Token (`jsonwebtoken`)**: Geração e validação de tokens JWT assinados criptograficamente com expiração de 24h.
+- **Bcrypt (`bcryptjs`)**: Algoritmo de hash unidirecional com salt de 10 rounds para proteção e armazenamento seguro de senhas.
 - **MySQL2 (v3.11+)**: Driver de alta performance com suporte a Promises e Prepared Statements para MySQL.
 - **Node:SQLite (`DatabaseSync`)**: Driver SQLite nativo integrado ao Node.js utilizado como mecanismo automático de fallback para desenvolvimento e testes ágeis sem necessidade de subir um servidor MySQL local.
 - **dotenv**: Carregamento seguro de variáveis de ambiente a partir de arquivo `.env`.
@@ -405,12 +407,13 @@ O banco de dados já possui contas cadastradas para teste imediato de todos os p
 ## 9. Mapeamento das Rotas da API REST
 
 ### 🔐 Autenticação e Gestão de Usuários (`/api/auth`)
-- `POST /api/auth/login`: Realiza autenticação, valida credenciais e aceite LGPD, retornando token e dados do perfil.
-- `GET /api/auth/me`: Retorna os dados do usuário autenticado no token atual.
+- `POST /api/auth/login`: Realiza autenticação, compara senhas com `bcrypt`, valida aceite LGPD e retorna token JWT assinado com dados do perfil.
+- `POST /api/auth/cadastro`: Cadastro público de novos usuários na tela inicial, com hash seguro de senha em `bcrypt`, consentimento LGPD e geração automática de sessão JWT.
+- `GET /api/auth/me`: Retorna os dados do usuário autenticado a partir da validação do token JWT.
 - `DELETE /api/auth/minha-conta`: Exclui permanentemente a conta do usuário e todas as suas fichas (Art. 18 LGPD).
 - `GET /api/auth/usuarios` *(Restrito à Conta Pai)*: Lista todas as contas e permissões da mesa.
-- `POST /api/auth/usuarios` *(Restrito à Conta Pai)*: Cria um novo usuário (*mestre* ou *player*).
-- `DELETE /api/auth/usuarios/:id` *(Restrito à Conta Pai)*: Remove um usuário e seus dados associados.
+- `POST /api/auth/usuarios` *(Restrito à Conta Pai)*: Cria um novo usuário (*mestre* ou *player*) com senha criptografada.
+- `DELETE /api/auth/usuarios/:id` *(Restrito à Conta Pai)*: Remove um usuário e seus dados associados em cascata.
 
 ### 📜 Fichas de Personagens (`/personagens`)
 - `GET /personagens/dados-sistema`: Retorna o catálogo oficial de classes, subclasses, ancestralidades, comunidades e cartas.
@@ -447,10 +450,9 @@ O sistema foi concebido respeitando os princípios fundamentais da **Lei Geral d
 
 ---
 
-## 11. Checklist de Atendimento da Entrega 1
+## 11. Checklist de Atendimento das Entregas
 
-Abaixo, demonstra-se a conformidade com todos os itens exigidos no edital da **Primeira Entrega**:
-
+### Entrega 1 — Problema e Estrutura Inicial
 | Requisito do Edital | Status | Onde Encontrar no Projeto |
 | :--- | :---: | :--- |
 | **Nome do projeto, descrição do problema, público afetado e proposta de solução** | ✅ Concluído | Seção 1 deste `README.md`. |
@@ -461,6 +463,19 @@ Abaixo, demonstra-se a conformidade com todos os itens exigidos no edital da **P
 | **Back-end planejado com rotas, controllers, middlewares e database** | ✅ Concluído | Pastas `backend/routes`, `backend/controllers`, `backend/middlewares`, `backend/database`. |
 | **Script SQL disponível com tabelas relacionadas** | ✅ Concluído | Arquivo `sql/daggerheart.sql` com 8 tabelas e integridade referencial. |
 | **Organização do GitHub (.gitignore sem arquivos sensíveis)** | ✅ Concluído | `.gitignore` configurado excluindo `node_modules`, `.env` e bancos temporários. |
+
+### Entrega 2 — Banco de Dados e Autenticação
+| Requisito do Edital | Status | Onde Encontrar no Projeto |
+| :--- | :---: | :--- |
+| **Banco de dados MySQL com múltiplas tabelas relacionadas** | ✅ Concluído | Script `sql/daggerheart.sql` com 8 tabelas e chaves estrangeiras com `ON DELETE CASCADE`. |
+| **Chaves primárias, estrangeiras e relacionamentos coerentes** | ✅ Concluído | Relacionamentos 1:N entre `USUARIOS` ↔ `PERSONAGENS` ↔ `COMBATE_HEROIS` e `INIMIGOS` ↔ `COMBATE_CRIATURAS`. |
+| **Script SQL disponível no repositório** | ✅ Concluído | `sql/daggerheart.sql` com DDL e carga completa de dados oficiais (*seeds*). |
+| **Cadastro e login de usuários integrados ao banco** | ✅ Concluído | Formulários dinâmicos de Login e Cadastro na tela inicial (`index.html`) e rotas `/api/auth/login` e `/api/auth/cadastro`. |
+| **Proteção das senhas (Criptografia / Hash)** | ✅ Concluído | Senhas criptografadas com `bcryptjs` (salt de 10 rounds) tanto no cadastro quanto na carga do banco. |
+| **Autenticação com JWT** | ✅ Concluído | Tokens gerados com biblioteca `jsonwebtoken` (`jwt.sign`) com validade de 24 horas. |
+| **Middlewares de autenticação e autorização** | ✅ Concluído | `authMiddleware` (validação de JWT), `requireMestre` e `requirePai` em `backend/middlewares/authMiddleware.js`. |
+| **Diferentes níveis ou perfis de acesso** | ✅ Concluído | Diferenciação estrita entre `mestre`, `player` e Conta Pai no front-end e nas rotas da API. |
+| **README.md atualizado e organização mantida** | ✅ Concluído | Documentação atualizada com instruções de execução e credenciais. |
 
 ---
 

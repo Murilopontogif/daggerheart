@@ -74,7 +74,7 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
             // Seed mumu
             const mumu = dbOuPool.prepare("SELECT * FROM USUARIOS WHERE LOGIN = 'mumu'").get();
             if (!mumu) {
-                dbOuPool.prepare("INSERT INTO USUARIOS (LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES (?, ?, ?, ?)").run("mumu", "irado", "mestre", 1);
+                dbOuPool.prepare("INSERT INTO USUARIOS (LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES (?, ?, ?, ?)").run("mumu", "$2b$10$MPmHq7xX/0fYSCIy7uO35.Lwbn4NV/ae8erq2.6yW6Hl94IOiqajm", "mestre", 1);
             }
 
             // Ensure USUARIO_ID exists in PERSONAGENS

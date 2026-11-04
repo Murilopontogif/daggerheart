@@ -165,9 +165,9 @@ CREATE TABLE COMBATE_ESTADO (
 -- 10. CARGA INICIAL DE USUÁRIOS
 -- --------------------------------------------------------------------------
 INSERT INTO USUARIOS (ID, LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES
-(1, 'mumu', 'irado', 'mestre', 1),
-(2, 'jogador1', '123456', 'player', 1),
-(3, 'jogador2', '123456', 'player', 1);
+(1, 'mumu', '$2b$10$MPmHq7xX/0fYSCIy7uO35.Lwbn4NV/ae8erq2.6yW6Hl94IOiqajm', 'mestre', 1), -- Senha padrão: irado (Hash bcrypt)
+(2, 'jogador1', '$2b$10$fWBumahfGRp5rFvTtZj44.y6j9rqhwvKJXG/G8AzzvoLVIkWdkvb6', 'player', 1), -- Senha padrão: 123456 (Hash bcrypt)
+(3, 'jogador2', '$2b$10$fWBumahfGRp5rFvTtZj44.y6j9rqhwvKJXG/G8AzzvoLVIkWdkvb6', 'player', 1); -- Senha padrão: 123456 (Hash bcrypt)
 
 -- --------------------------------------------------------------------------
 -- 11. CARGA INICIAL DO ESTADO DO COMBATE

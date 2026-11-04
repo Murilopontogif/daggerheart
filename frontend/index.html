@@ -23,8 +23,8 @@
         }
         .login-card {
             width: 100%;
-            max-width: 500px;
-            padding: 40px 38px;
+            max-width: 520px;
+            padding: 36px 36px;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-card), 0 0 40px rgba(251, 191, 36, 0.15);
             border: 1px solid var(--border-glow);
@@ -44,22 +44,22 @@
             background: linear-gradient(90deg, transparent, var(--accent-gold), var(--accent-purple), transparent);
         }
         .login-crest-orb {
-            width: 68px;
-            height: 68px;
-            margin: 0 auto 14px;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 12px;
             border-radius: 18px;
             background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, rgba(157, 78, 221, 0.2) 100%);
             border: 1.5px solid var(--accent-gold);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.85rem;
+            font-size: 1.75rem;
             color: var(--accent-gold);
             box-shadow: 0 0 25px rgba(251, 191, 36, 0.35);
         }
         .login-title {
             font-family: 'Cinzel', serif;
-            font-size: 2.2rem;
+            font-size: 2.1rem;
             font-weight: 900;
             letter-spacing: 2px;
             color: #ffffff;
@@ -73,9 +73,44 @@
         }
         .login-subtitle {
             color: var(--text-muted);
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             margin-top: 6px;
-            margin-bottom: 26px;
+            margin-bottom: 20px;
+        }
+        .auth-nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .auth-tab-btn {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .auth-tab-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .auth-tab-btn.active {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(157, 78, 221, 0.2) 100%);
+            color: #ffffff;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.25);
         }
         .lgpd-checkbox-group {
             display: flex;
@@ -140,7 +175,7 @@
 
     <div class="login-hero-container">
         <div class="login-card">
-            <div class="brand-badge" style="margin-bottom: 14px;">
+            <div class="brand-badge" style="margin-bottom: 12px;">
                 <span class="pulse-dot"></span>
                 <i class="fa-solid fa-dice-d20"></i>
                 <span>SISTEMA OFICIAL VTT</span>
@@ -153,6 +188,19 @@
             <h1 class="login-title">DAGGER<span>HEART</span></h1>
             <p class="login-subtitle">Portal de Heróis, Fichas Oficiais & Arena de Combate</p>
 
+            <!-- Abas Alternadoras: Login / Cadastro -->
+            <div class="auth-nav-tabs">
+                <button type="button" id="tabBtnLogin" class="auth-tab-btn active" onclick="alternarAbaAuth('login')">
+                    <i class="fa-solid fa-door-open"></i>
+                    <span>Entrar na Mesa</span>
+                </button>
+                <button type="button" id="tabBtnCadastro" class="auth-tab-btn" onclick="alternarAbaAuth('cadastro')">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Criar Nova Conta</span>
+                </button>
+            </div>
+
+            <!-- FORMULÁRIO 1: LOGIN -->
             <form id="formLogin" class="cyber-form rpg-form" style="text-align: left;">
                 <div class="input-group">
                     <label for="inputUsuario"><i class="fa-solid fa-user-shield"></i> Usuário / Login</label>
@@ -187,8 +235,61 @@
                 <div id="msgFeedback" class="feedback-message"></div>
             </form>
 
+            <!-- FORMULÁRIO 2: CADASTRO DE NOVO USUÁRIO -->
+            <form id="formCadastro" class="cyber-form rpg-form" style="text-align: left; display: none;">
+                <div class="input-group">
+                    <label for="inputCadUsuario"><i class="fa-solid fa-user-shield"></i> Escolha seu Usuário / Login *</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="inputCadUsuario" placeholder="Ex: arthur_ladino" required autocomplete="username">
+                        <i class="fa-solid fa-feather-pointed field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="selectCadPapel"><i class="fa-solid fa-dice-d20"></i> Papel na Mesa *</label>
+                    <div class="input-wrapper">
+                        <select id="selectCadPapel" style="width: 100%; padding: 12px 14px; background: rgba(10,12,22,0.95); border: 1px solid rgba(251,191,36,0.35); color: #fff; border-radius: var(--radius-sm); font-size: 0.92rem; outline: none;">
+                            <option value="player" selected>Jogador (Player) — Cria suas fichas e luta na arena</option>
+                            <option value="mestre">Mestre (Narrador) — Controla monstros, combates e todas as fichas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="inputCadSenha"><i class="fa-solid fa-key"></i> Senha de Acesso (Mínimo 4 caracteres) *</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="inputCadSenha" placeholder="Digite uma senha..." required autocomplete="new-password">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="inputCadConfirmarSenha"><i class="fa-solid fa-lock"></i> Confirmar Senha *</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="inputCadConfirmarSenha" placeholder="Repita a senha digitada..." required autocomplete="new-password">
+                        <i class="fa-solid fa-check-double field-icon"></i>
+                    </div>
+                </div>
+
+                <div class="lgpd-checkbox-group">
+                    <input type="checkbox" id="checkCadLgpd" required checked>
+                    <label for="checkCadLgpd">
+                        Concordo com os Termos e autorizo o tratamento de dados conforme as <span class="lgpd-link" onclick="abrirModalLgpdLogin()">Normas da LGPD</span>.
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-full" id="btnCadSubmit">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span>Criar Conta e Entrar</span>
+                    </button>
+                </div>
+
+                <div id="msgFeedbackCad" class="feedback-message"></div>
+            </form>
+
             <div style="margin-top: 22px; font-size: 0.78rem; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
-                <i class="fa-solid fa-crown" style="color: var(--accent-gold);"></i> As contas são criadas exclusivamente pela Conta Pai da mesa.<br>
+                <i class="fa-solid fa-shield-halved" style="color: var(--accent-gold);"></i> Senhas protegidas com criptografia de ponta (bcrypt) e tokens JWT.<br>
                 Protegido sob a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).
             </div>
         </div>
@@ -204,7 +305,7 @@
                 </button>
             </div>
             <div class="sheet-paper" style="gap: 14px; font-size: 0.9rem; line-height: 1.6;">
-                <p><strong>1. Finalidade do Tratamento:</strong> Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD), seus dados cadastrais (nome de usuário e senha) e os dados de fichas de personagens são coletados e armazenados única e exclusivamente para autenticação e operação da plataforma de RPG Daggerheart.</p>
+                <p><strong>1. Finalidade do Tratamento:</strong> Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018 - LGPD), seus dados cadastrais (nome de usuário e senha com hash seguro) e os dados de fichas de personagens são coletados e armazenados única e exclusivamente para autenticação e operação da plataforma de RPG Daggerheart.</p>
                 <p><strong>2. Minimização de Dados:</strong> Este sistema aplica o princípio da necessidade: não coletamos CPF, endereço, telefone, e-mail pessoal, dados biométricos nem dados bancários.</p>
                 <p><strong>3. Armazenamento e Acesso:</strong> Suas fichas ficam vinculadas com segurança à sua conta de jogador. O Mestre da mesa tem permissão de leitura e condução de combates conforme as regras do jogo.</p>
                 <p><strong>4. Direitos do Titular (Art. 18):</strong> Você pode revogar seu consentimento ou solicitar a exclusão definitiva de sua conta e de suas fichas a qualquer momento pelo menu interno do sistema.</p>
@@ -224,28 +325,58 @@
             window.location.href = "personagens.html";
         }
 
+        const tabBtnLogin = document.getElementById("tabBtnLogin");
+        const tabBtnCadastro = document.getElementById("tabBtnCadastro");
         const formLogin = document.getElementById("formLogin");
+        const formCadastro = document.getElementById("formCadastro");
+
         const inputUsuario = document.getElementById("inputUsuario");
         const inputSenha = document.getElementById("inputSenha");
         const checkLgpd = document.getElementById("checkLgpd");
         const msgFeedback = document.getElementById("msgFeedback");
         const btnLoginSubmit = document.getElementById("btnLoginSubmit");
 
-        function exibirErroLogin(mensagem) {
-            msgFeedback.className = "feedback-message feedback-error";
-            msgFeedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size: 1.2rem;"></i> <div><strong>Falha de Acesso:</strong> ${mensagem}</div>`;
-            msgFeedback.style.display = "flex";
-            inputSenha.value = "";
-            inputSenha.focus();
+        const inputCadUsuario = document.getElementById("inputCadUsuario");
+        const selectCadPapel = document.getElementById("selectCadPapel");
+        const inputCadSenha = document.getElementById("inputCadSenha");
+        const inputCadConfirmarSenha = document.getElementById("inputCadConfirmarSenha");
+        const checkCadLgpd = document.getElementById("checkCadLgpd");
+        const msgFeedbackCad = document.getElementById("msgFeedbackCad");
+        const btnCadSubmit = document.getElementById("btnCadSubmit");
+
+        function alternarAbaAuth(aba) {
+            msgFeedback.style.display = "none";
+            msgFeedbackCad.style.display = "none";
+
+            if (aba === "cadastro") {
+                tabBtnLogin.classList.remove("active");
+                tabBtnCadastro.classList.add("active");
+                formLogin.style.display = "none";
+                formCadastro.style.display = "block";
+                inputCadUsuario.focus();
+            } else {
+                tabBtnCadastro.classList.remove("active");
+                tabBtnLogin.classList.add("active");
+                formCadastro.style.display = "none";
+                formLogin.style.display = "block";
+                inputUsuario.focus();
+            }
         }
 
+        function exibirFeedback(elemento, mensagem, tipo = "error") {
+            elemento.className = `feedback-message feedback-${tipo}`;
+            const icone = tipo === "error" ? "fa-solid fa-triangle-exclamation" : "fa-solid fa-circle-check";
+            elemento.innerHTML = `<i class="${icone}" style="font-size: 1.2rem;"></i> <div>${mensagem}</div>`;
+            elemento.style.display = "flex";
+        }
+
+        // Submissão do Login
         formLogin.addEventListener("submit", async (e) => {
             e.preventDefault();
-            msgFeedback.className = "feedback-message";
             msgFeedback.style.display = "none";
 
             if (!checkLgpd.checked) {
-                exibirErroLogin("Você deve aceitar os termos da LGPD para entrar na mesa.");
+                exibirFeedback(msgFeedback, "Você deve aceitar os termos da LGPD para entrar na mesa.", "error");
                 return;
             }
 
@@ -271,18 +402,76 @@
 
                 salvarSessao(data.token, data.usuario);
 
-                msgFeedback.className = "feedback-message feedback-success";
-                msgFeedback.innerHTML = `<i class="fa-solid fa-circle-check" style="font-size: 1.2rem;"></i> <div><strong>Sucesso:</strong> Login aprovado! Entrando na mesa...</div>`;
-                msgFeedback.style.display = "flex";
+                exibirFeedback(msgFeedback, "<strong>Sucesso:</strong> Login aprovado! Entrando na mesa...", "success");
+
+                setTimeout(() => {
+                    window.location.href = "personagens.html";
+                }, 400);
+
+            } catch (err) {
+                exibirFeedback(msgFeedback, `<strong>Falha de Acesso:</strong> ${err.message}`, "error");
+                inputSenha.value = "";
+                inputSenha.focus();
+                btnLoginSubmit.disabled = false;
+                btnLoginSubmit.innerHTML = '<i class="fa-solid fa-door-open"></i> <span>Entrar na Mesa</span>';
+            }
+        });
+
+        // Submissão do Cadastro de Novo Usuário
+        formCadastro.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            msgFeedbackCad.style.display = "none";
+
+            const login = inputCadUsuario.value.trim();
+            const papel = selectCadPapel.value;
+            const senha = inputCadSenha.value;
+            const confirmarSenha = inputCadConfirmarSenha.value;
+
+            if (senha.length < 4) {
+                exibirFeedback(msgFeedbackCad, "A senha deve conter no mínimo 4 caracteres.", "error");
+                inputCadSenha.focus();
+                return;
+            }
+
+            if (senha !== confirmarSenha) {
+                exibirFeedback(msgFeedbackCad, "As senhas digitadas não coincidem. Verifique a confirmação.", "error");
+                inputCadConfirmarSenha.focus();
+                return;
+            }
+
+            if (!checkCadLgpd.checked) {
+                exibirFeedback(msgFeedbackCad, "Você deve aceitar os termos da LGPD para se cadastrar.", "error");
+                return;
+            }
+
+            btnCadSubmit.disabled = true;
+            btnCadSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Criando conta com segurança...</span>';
+
+            try {
+                const response = await fetch("/api/auth/cadastro", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ login, senha, papel, lgpdAceite: true })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.mensagem || "Erro ao criar conta.");
+                }
+
+                salvarSessao(data.token, data.usuario);
+
+                exibirFeedback(msgFeedbackCad, `<strong>Conta criada com sucesso!</strong> Bem-vindo(a), ${data.usuario.login}! Entrando na mesa...`, "success");
 
                 setTimeout(() => {
                     window.location.href = "personagens.html";
                 }, 500);
 
             } catch (err) {
-                exibirErroLogin(err.message || "Usuário ou senha inválidos. Verifique suas credenciais.");
-                btnLoginSubmit.disabled = false;
-                btnLoginSubmit.innerHTML = '<i class="fa-solid fa-door-open"></i> <span>Entrar na Mesa</span>';
+                exibirFeedback(msgFeedbackCad, `<strong>Erro no cadastro:</strong> ${err.message}`, "error");
+                btnCadSubmit.disabled = false;
+                btnCadSubmit.innerHTML = '<i class="fa-solid fa-user-check"></i> <span>Criar Conta e Entrar</span>';
             }
         });
 

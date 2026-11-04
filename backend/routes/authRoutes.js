@@ -1,6 +1,7 @@
 import express from "express";
 import {
     login,
+    cadastrarUsuario,
     me,
     listarUsuarios,
     criarUsuario,
@@ -12,6 +13,7 @@ import { authMiddleware, requirePai } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/login", login);
+router.post("/cadastro", cadastrarUsuario);
 router.get("/me", authMiddleware, me);
 router.delete("/minha-conta", authMiddleware, lgpdExcluirMinhaConta);
 

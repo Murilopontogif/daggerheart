@@ -40,6 +40,15 @@ function renderizarTabelaUsuarios(lista) {
             ? `<span class="badge-mestre"><i class="fa-solid fa-crown"></i> Mestre</span>`
             : `<span class="badge-player"><i class="fa-solid fa-shield-halved"></i> Player</span>`;
 
+        const isBcrypt = u.SENHA && (u.SENHA.startsWith("$2a$") || u.SENHA.startsWith("$2b$") || u.SENHA.startsWith("$2y$"));
+        const senhaDisplay = isBcrypt
+            ? `<span title="${u.SENHA}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: help;">
+                   <i class="fa-solid fa-lock"></i> Criptografada (bcrypt)
+               </span>`
+            : `<code style="background: rgba(0,0,0,0.55); border: 1px solid rgba(251,191,36,0.35); color: var(--accent-gold); padding: 4px 10px; border-radius: 6px; font-weight: 800;">
+                   ${u.SENHA}
+               </code>`;
+
         return `
             <tr>
                 <td><strong style="color: var(--accent-gold);">#${u.ID}</strong></td>
@@ -47,11 +56,7 @@ function renderizarTabelaUsuarios(lista) {
                     <strong>${u.LOGIN}</strong>
                     ${isMumu ? `<span class="subclass-badge" style="margin-left: 6px;"><i class="fa-solid fa-star"></i> Conta Pai</span>` : ""}
                 </td>
-                <td>
-                    <code style="background: rgba(0,0,0,0.55); border: 1px solid rgba(251,191,36,0.35); color: var(--accent-gold); padding: 4px 10px; border-radius: 6px; font-weight: 800;">
-                        ${u.SENHA}
-                    </code>
-                </td>
+                <td>${senhaDisplay}</td>
                 <td>${badgePapel}</td>
                 <td>
                     <span class="c-quick-stat" style="color: #6ee7b7; border-color: rgba(16,185,129,0.35);">
@@ -91,7 +96,7 @@ function configurarFormCriacaoUsuario() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.mensagem || "Erro ao cadastrar usuário.");
 
-            mostrarMensagemAdmin(`Conta "${login}" (${papel}) criada com sucesso!`, "success");
+            mostrarMensagemAdmin(`Conta "${login}" (${papel}) criada com sucesso e protegida com bcrypt!`, "success");
             form.reset();
             await carregarUsuarios();
         } catch (err) {
@@ -103,28 +108,30 @@ function configurarFormCriacaoUsuario() {
 }
 
 async function deletarConta(id, login) {
-    if (!confirm(`ATENÇÃO (LGPD):\n\nDeseja realmente excluir a conta "${login}" e todas as suas fichas associadas? Esta ação é irreversível.`)) {
-        return;
-    }
+    const confirmou = confirm(`ATENÇÃO - LGPD:\n\nTem certeza que deseja excluir permanentemente a conta de "${login}"?\n\nTodas as fichas de personagens associadas a esta conta serão excluídas do banco de dados.`);
+    if (!confirmou) return;
 
     try {
         const res = await apiFetch(`/api/auth/usuarios/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (!res.ok) throw new Error(data.mensagem || "Erro ao excluir conta.");
 
-        mostrarMensagemAdmin(`Conta "${login}" excluída com sucesso.`, "success");
+        mostrarMensagemAdmin(`Conta de "${login}" e suas fichas associadas foram excluídas com sucesso.`, "success");
         await carregarUsuarios();
     } catch (err) {
-        mostrarMensagemAdmin(`Erro: ${err.message}`, "error");
+        mostrarMensagemAdmin(`Erro ao excluir: ${err.message}`, "error");
     }
 }
 
-function mostrarMensagemAdmin(msg, tipo = "info") {
+function mostrarMensagemAdmin(texto, tipo = "success") {
     const container = document.getElementById("statusContainer");
-    const el = document.getElementById("mensagemAdmin");
-    if (!container || !el) return;
+    const p = document.getElementById("mensagemAdmin");
 
+    p.className = `status-badge ${tipo === "success" ? "status-online" : "status-offline"}`;
+    p.textContent = texto;
     container.style.display = "block";
-    el.innerHTML = `<i class="fa-solid ${tipo === "error" ? "fa-triangle-exclamation" : "fa-circle-check"}"></i> <span>${msg}</span>`;
-    setTimeout(() => { container.style.display = "none"; }, 4500);
+
+    setTimeout(() => {
+        container.style.display = "none";
+    }, 4500);
 }

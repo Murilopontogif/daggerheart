@@ -1,4 +1,5 @@
 import express from "express";
+import jwt from "jsonwebtoken";
 import {
     listarPersonagens,
     buscarPersonagemPorId,
@@ -9,18 +10,21 @@ import {
 } from "../controllers/PersonagensController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
+const JWT_SECRET = process.env.JWT_SECRET || "daggerheart_super_secret_jwt_key_2026";
 const router = express.Router();
 
 // Dados do sistema podem ser carregados para montar formulários
 router.get("/dados-sistema", (req, res, next) => {
-    // Tenta autenticar se o token estiver presente, mas não bloqueia se não estiver
     const authHeader = req.headers.authorization || req.headers["x-user-token"];
     if (authHeader) {
         try {
-            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
-            req.user = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+            const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader.trim();
+            req.user = jwt.verify(token, JWT_SECRET);
         } catch {
-            // ignora
+            try {
+                const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader.trim();
+                req.user = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+            } catch {}
         }
     }
     next();
