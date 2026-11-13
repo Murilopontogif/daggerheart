@@ -478,7 +478,21 @@ function preencherDadosFichaGrande(p) {
     cartasEquipadasIds = [];
     try {
         const c = typeof p.CARTAS_DOMINIO === "string" ? JSON.parse(p.CARTAS_DOMINIO) : p.CARTAS_DOMINIO;
-        if (Array.isArray(c)) cartasEquipadasIds = c.map(Number);
+        if (Array.isArray(c)) {
+            const todasCartas = obterListaCartasSistema();
+            cartasEquipadasIds = c.map(item => {
+                if (typeof item === "number" || (!isNaN(Number(item)) && typeof item !== "object")) {
+                    return Number(item);
+                }
+                if (item && typeof item === "object") {
+                    if (item.id) return Number(item.id);
+                    const nomeItem = (item.nome || item.name || "").toLowerCase();
+                    const achada = todasCartas.find(tc => (tc.name || tc.nome || "").toLowerCase() === nomeItem);
+                    if (achada) return Number(achada.id);
+                }
+                return null;
+            }).filter(Boolean);
+        }
     } catch {}
     renderizarCartasEquipadas();
 }
@@ -495,7 +509,10 @@ function preencherExperienciasFichaGrande(expRaw) {
         adicionarLinhaExperiencia("Explorador das Ruínas", 2);
         adicionarLinhaExperiencia("Sobrevivente de Batalha", 2);
     } else {
-        exps.forEach(e => adicionarLinhaExperiencia(e.nome || "", e.valor ?? e.bonus ?? 2));
+        exps.forEach(e => {
+            const rawVal = String(e.valor ?? e.bonus ?? 2).replace("+", "").trim();
+            adicionarLinhaExperiencia(e.nome || "", Number(rawVal) || 2);
+        });
     }
 }
 
@@ -532,7 +549,7 @@ function preencherEquipamentosFichaGrande(p) {
     try {
         const ap = typeof p.ARMA_PRINCIPAL === "string" ? JSON.parse(p.ARMA_PRINCIPAL) : (p.ARMA_PRINCIPAL || {});
         document.getElementById("shArmaP_Nome").value = ap.nome || "";
-        document.getElementById("shArmaP_Atrib").value = ap.atributo || "";
+        document.getElementById("shArmaP_Atrib").value = ap.atributo ? (ap.tipo ? `${ap.atributo} / ${ap.tipo}` : ap.atributo) : (ap.tipo || "");
         document.getElementById("shArmaP_Dano").value = ap.dano || "";
         document.getElementById("shArmaP_Hab").value = ap.habilidade || "";
     } catch {}
@@ -540,7 +557,7 @@ function preencherEquipamentosFichaGrande(p) {
     try {
         const as = typeof p.ARMA_SECUNDARIA === "string" ? JSON.parse(p.ARMA_SECUNDARIA) : (p.ARMA_SECUNDARIA || {});
         document.getElementById("shArmaS_Nome").value = as.nome || "";
-        document.getElementById("shArmaS_Atrib").value = as.atributo || "";
+        document.getElementById("shArmaS_Atrib").value = as.atributo ? (as.tipo ? `${as.atributo} / ${as.tipo}` : as.atributo) : (as.tipo || "");
         document.getElementById("shArmaS_Dano").value = as.dano || "";
         document.getElementById("shArmaS_Hab").value = as.habilidade || "";
     } catch {}
@@ -548,8 +565,8 @@ function preencherEquipamentosFichaGrande(p) {
     try {
         const arm = typeof p.ARMADURA_ATIVA === "string" ? JSON.parse(p.ARMADURA_ATIVA) : (p.ARMADURA_ATIVA || {});
         document.getElementById("shArmaduraNome").value = arm.nome || "";
-        document.getElementById("shArmaduraBase").value = arm.base ?? p.ARMADURA ?? 0;
-        document.getElementById("shArmaduraLimiares").value = arm.limiares || "";
+        document.getElementById("shArmaduraBase").value = arm.base ?? arm.armadura ?? p.ARMADURA ?? 0;
+        document.getElementById("shArmaduraLimiares").value = arm.limiares || `${p.DANO_MAIOR || 8} / ${p.DANO_GRAVE || 15}`;
         document.getElementById("shArmaduraHab").value = arm.habilidade || "";
     } catch {}
 }
@@ -588,7 +605,11 @@ function preencherInventarioEstruturado(p) {
         adicionarLinhaItemInventario("Poção de Vida Menor", 2, "Consumível", "Recupera 1d4 PV");
     } else {
         itens.forEach(item => {
-            adicionarLinhaItemInventario(item.nome, item.qtd, item.categoria || item.slots || "Item", item.detalhes);
+            if (typeof item === "string") {
+                adicionarLinhaItemInventario(item, 1, "Equipamento", "");
+            } else {
+                adicionarLinhaItemInventario(item.nome, item.qtd, item.categoria || item.slots || "Equipamento", item.detalhes);
+            }
         });
     }
 }
@@ -819,9 +840,10 @@ function aoMudarRacaFichaGrande(sobrescreverTexto = true) {
     const raca = dadosSistema.ANCESTRALIDADES.find(a => a.nome === nome);
     document.getElementById("shHabRacaTitle").textContent = nome || "—";
     if (sobrescreverTexto && raca) {
-        const txt = raca.habilidades
-            ? raca.habilidades.map(h => `• ${h.nome}: ${h.descricao}`).join("\n\n")
-            : `${raca.poder1 ? `• ${raca.poder1}\n` : ""}${raca.poder2 ? `• ${raca.poder2}` : (raca.habilidade || "")}`;
+        const listaPoderes = raca.habilidades || raca.poderes;
+        const txt = Array.isArray(listaPoderes)
+            ? listaPoderes.map(h => `• ${h.nome}: ${h.descricao || h.desc || ""}`).join("\n\n")
+            : `${raca.poder1 ? `• ${raca.poder1}\n` : ""}${raca.poder2 ? `• ${raca.poder2}` : (raca.habilidade || raca.descricao || "")}`;
         document.getElementById("shHabilidadeRaca").value = txt;
     }
 }
@@ -833,12 +855,13 @@ function aoMudarRacaMista1FichaGrande() {
     const sel = document.getElementById("shPoderRaca1");
     sel.innerHTML = "";
     if (raca) {
-        const poderes = raca.habilidades || [
+        const poderes = raca.habilidades || raca.poderes || [
             raca.poder1 ? { nome: "1º Poder", descricao: raca.poder1 } : null,
             raca.poder2 ? { nome: "2º Poder", descricao: raca.poder2 } : null
         ].filter(Boolean);
         poderes.forEach(p => {
-            const label = p.descricao ? `${p.nome}: ${p.descricao}` : p.nome;
+            const desc = p.descricao || p.desc || "";
+            const label = desc ? `${p.nome}: ${desc}` : p.nome;
             sel.innerHTML += `<option value="${label.replace(/"/g, '&quot;')}">${p.nome}</option>`;
         });
     }
@@ -852,12 +875,13 @@ function aoMudarRacaMista2FichaGrande() {
     const sel = document.getElementById("shPoderRaca2");
     sel.innerHTML = "";
     if (raca) {
-        const poderes = raca.habilidades || [
+        const poderes = raca.habilidades || raca.poderes || [
             raca.poder1 ? { nome: "1º Poder", descricao: raca.poder1 } : null,
             raca.poder2 ? { nome: "2º Poder", descricao: raca.poder2 } : null
         ].filter(Boolean);
         poderes.forEach(p => {
-            const label = p.descricao ? `${p.nome}: ${p.descricao}` : p.nome;
+            const desc = p.descricao || p.desc || "";
+            const label = desc ? `${p.nome}: ${desc}` : p.nome;
             sel.innerHTML += `<option value="${label.replace(/"/g, '&quot;')}">${p.nome}</option>`;
         });
     }

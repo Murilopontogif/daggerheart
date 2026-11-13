@@ -24,16 +24,16 @@
 
         <!-- DASHBOARD DE ADMINISTRAÇÃO DA CONTA PAI (MUMU) -->
         <main class="dashboard-grid">
-            <!-- Coluna Esquerda: Tabela de Contas, Logins e Senhas -->
+            <!-- Coluna Esquerda: Tabela de Contas e Perfis -->
             <section class="card glass-card list-section">
                 <div class="card-header">
                     <div class="card-title">
                         <div class="icon-box icon-gold">
-                            <i class="fa-solid fa-key"></i>
+                            <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <div>
-                            <h2>Contas, Logins & Senhas da Mesa</h2>
-                            <span class="card-subtitle">Acesso exclusivo da Conta Pai (mumu) para visualização de credenciais e auditoria LGPD</span>
+                            <h2>Gestão de Contas & Permissões</h2>
+                            <span class="card-subtitle">Painel exclusivo da Conta Pai (mumu) para controle de perfis, segurança e auditoria LGPD</span>
                         </div>
                     </div>
 
@@ -58,8 +58,8 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Login do Usuário</th>
-                                <th>Senha Cadastrada</th>
-                                <th>Papel na Mesa</th>
+                                <th>Proteção de Senha</th>
+                                <th>Papel / Nível de Acesso</th>
                                 <th>Termo LGPD</th>
                                 <th>Ações</th>
                             </tr>
@@ -74,7 +74,7 @@
                 <div class="class-domains-hint" style="margin-top: 20px;">
                     <i class="fa-solid fa-scale-balanced" style="color: var(--accent-gold); font-size: 1.1rem;"></i>
                     <span>
-                        <strong>Conformidade LGPD (Lei nº 13.709/2018):</strong> Ao excluir uma conta de usuário, todas as fichas associadas a ela são permanentemente removidas do banco de dados em respeito ao direito ao esquecimento.
+                        <strong>Segurança & Conformidade LGPD (Lei nº 13.709/2018):</strong> As senhas são armazenadas com hash irreversível (bcrypt) e jamais trafegam nas respostas da API. Ao excluir uma conta, todas as fichas vinculadas são removidas em cascata.
                     </span>
                 </div>
             </section>
@@ -103,15 +103,15 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="novoUserSenha"><i class="fa-solid fa-lock"></i> Senha de Acesso *</label>
+                        <label for="novoUserSenha"><i class="fa-solid fa-lock"></i> Senha de Acesso (Mín. 4 caracteres) *</label>
                         <div class="input-wrapper">
-                            <input type="text" id="novoUserSenha" required placeholder="Digite a senha da conta...">
+                            <input type="password" id="novoUserSenha" required minlength="4" placeholder="Digite a senha da conta...">
                             <i class="fa-solid fa-key field-icon"></i>
                         </div>
                     </div>
 
                     <div class="input-group">
-                        <label for="novoUserPapel"><i class="fa-solid fa-chess-king"></i> Papel na Mesa (Coluna Player/Mestre) *</label>
+                        <label for="novoUserPapel"><i class="fa-solid fa-chess-king"></i> Papel na Mesa (Player / Mestre) *</label>
                         <div class="input-wrapper">
                             <select id="novoUserPapel">
                                 <option value="player" selected>Jogador (Player) — Acessa apenas suas fichas</option>

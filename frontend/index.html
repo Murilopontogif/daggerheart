@@ -233,6 +233,22 @@
                 </div>
 
                 <div id="msgFeedback" class="feedback-message"></div>
+
+                <!-- Acesso Rápido de Demonstração (Teste de Perfis) -->
+                <div class="demo-credentials-box">
+                    <span class="demo-credentials-label"><i class="fa-solid fa-bolt"></i> Preenchimento Rápido (Contas de Teste):</span>
+                    <div class="demo-pills-row">
+                        <button type="button" class="demo-pill-btn mestre" onclick="preencherDemo('mumu', 'irado')">
+                            <i class="fa-solid fa-crown"></i> Mestre / Pai (mumu)
+                        </button>
+                        <button type="button" class="demo-pill-btn player" onclick="preencherDemo('jogador1', '123456')">
+                            <i class="fa-solid fa-shield-halved"></i> Jogador 1
+                        </button>
+                        <button type="button" class="demo-pill-btn player" onclick="preencherDemo('jogador2', '123456')">
+                            <i class="fa-solid fa-user-shield"></i> Jogador 2
+                        </button>
+                    </div>
+                </div>
             </form>
 
             <!-- FORMULÁRIO 2: CADASTRO DE NOVO USUÁRIO -->
@@ -481,6 +497,13 @@
 
         function fecharModalLgpdLogin() {
             document.getElementById("modalLgpdLogin").style.display = "none";
+        }
+
+        function preencherDemo(login, senha) {
+            alternarAbaAuth("login");
+            inputUsuario.value = login;
+            inputSenha.value = senha;
+            checkLgpd.checked = true;
         }
     </script>
 </body>

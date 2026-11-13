@@ -46,17 +46,17 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
 
             <h1>Dagger<span>heart</span></h1>
-            <p>Gerenciador de Fichas Completas, Inventário, Cartas de Domínio e Arena de Combate Sincronizada.</p>
+            <p>Plataforma Oficial de Fichas, Grimório de Domínios e Arena de Combate Sincronizada.</p>
 
-            <!-- Navegação Principal (Abas Separadas) -->
-            <div class="app-mode-tabs">
+            <!-- Navegação Principal Minimalista -->
+            <nav class="app-mode-tabs" aria-label="Navegação Principal">
                 <a href="personagens.html" class="mode-tab-btn ${currentPage === "personagens.html" ? "active" : ""}">
-                    <i class="fa-solid fa-users-viewfinder"></i>
-                    <span>Visualizar Personagens</span>
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>Heróis & Fichas</span>
                 </a>
                 <a href="criar-ficha.html" class="mode-tab-btn ${currentPage === "criar-ficha.html" ? "active" : ""}">
-                    <i class="fa-solid fa-scroll"></i>
-                    <span>Criar Ficha Grandona</span>
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Criar Personagem</span>
                 </a>
                 <a href="combate.html" class="mode-tab-btn ${currentPage === "combate.html" ? "active" : ""}">
                     <i class="fa-solid fa-swords"></i>
@@ -65,14 +65,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${isMestre ? `
                 <a href="criaturas.html" class="mode-tab-btn ${currentPage === "criaturas.html" ? "active" : ""}">
                     <i class="fa-solid fa-dragon"></i>
-                    <span>Bestiário & Criar Criaturas</span>
+                    <span>Bestiário (Mestre)</span>
                 </a>` : ""}
                 ${isPai ? `
                 <a href="admin.html" class="mode-tab-btn ${currentPage === "admin.html" ? "active" : ""}">
-                    <i class="fa-solid fa-key"></i>
-                    <span>Contas & Senhas (Pai)</span>
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>Gestão de Contas</span>
                 </a>` : ""}
-            </div>
+            </nav>
         </div>
     </header>
 

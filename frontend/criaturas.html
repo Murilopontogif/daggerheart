@@ -117,14 +117,12 @@
         </div>
     </div>
 
-    <!-- ===================================================================== -->
-    <!-- MODAL DE CRIAÇÃO DE NOVA CRIATURA (ESTILIZADO COM CYBER-FORM RPG)     -->
-    <!-- ===================================================================== -->
+        <!-- MODAL DE CRIAÇÃO / EDIÇÃO DE CRIATURA (ESTILIZADO COM CYBER-FORM RPG) -->
     <div id="modalCriarCriatura" class="sheet-modal-backdrop" style="display: none;">
         <div class="sheet-modal-dialog" style="max-width: 820px; height: auto; max-height: 92vh;">
             <div class="sheet-modal-topbar">
                 <div class="topbar-left">
-                    <span class="sheet-tag"><i class="fa-solid fa-dragon"></i> FORJA DE NOVA CRIATURA / ADVERSÁRIO</span>
+                    <span class="sheet-tag" id="modalCriaturaTitleTag"><i class="fa-solid fa-dragon"></i> FORJA DE NOVA CRIATURA / ADVERSÁRIO</span>
                 </div>
                 <div class="topbar-actions">
                     <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalNovaCriatura()">
@@ -136,6 +134,7 @@
 
             <div class="sheet-paper">
                 <form id="formNovaCriatura" class="cyber-form rpg-form">
+                    <input type="hidden" id="cIdEdicao" value="">
                     <!-- Foto & Nome -->
                     <div class="input-group">
                         <label for="cImagem"><i class="fa-solid fa-camera"></i> Imagem / Token da Criatura (URL)</label>

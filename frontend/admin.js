@@ -40,14 +40,19 @@ function renderizarTabelaUsuarios(lista) {
             ? `<span class="badge-mestre"><i class="fa-solid fa-crown"></i> Mestre</span>`
             : `<span class="badge-player"><i class="fa-solid fa-shield-halved"></i> Player</span>`;
 
-        const isBcrypt = u.SENHA && (u.SENHA.startsWith("$2a$") || u.SENHA.startsWith("$2b$") || u.SENHA.startsWith("$2y$"));
-        const senhaDisplay = isBcrypt
-            ? `<span title="${u.SENHA}" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #6ee7b7; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: help;">
-                   <i class="fa-solid fa-lock"></i> Criptografada (bcrypt)
-               </span>`
-            : `<code style="background: rgba(0,0,0,0.55); border: 1px solid rgba(251,191,36,0.35); color: var(--accent-gold); padding: 4px 10px; border-radius: 6px; font-weight: 800;">
-                   ${u.SENHA}
-               </code>`;
+        const senhaDisplay = `
+            <span title="Protegida com bcrypt no banco; senhas nunca são retornadas pela API" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: #6ee7b7; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 700;">
+                <i class="fa-solid fa-shield-halved"></i> Hash bcrypt (Oculta)
+            </span>`;
+
+        const controlePapel = isMumu
+            ? badgePapel
+            : `<div style="display: inline-flex; align-items: center; gap: 8px;">
+                   ${badgePapel}
+                   <button type="button" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 0.72rem;" onclick="alternarPapelConta(${u.ID}, '${u.LOGIN.replace(/'/g, "\\'")}', '${u.PAPEL}')" title="Alternar entre Jogador e Mestre">
+                       <i class="fa-solid fa-repeat"></i> Alternar
+                   </button>
+               </div>`;
 
         return `
             <tr>
@@ -57,7 +62,7 @@ function renderizarTabelaUsuarios(lista) {
                     ${isMumu ? `<span class="subclass-badge" style="margin-left: 6px;"><i class="fa-solid fa-star"></i> Conta Pai</span>` : ""}
                 </td>
                 <td>${senhaDisplay}</td>
-                <td>${badgePapel}</td>
+                <td>${controlePapel}</td>
                 <td>
                     <span class="c-quick-stat" style="color: #6ee7b7; border-color: rgba(16,185,129,0.35);">
                         <i class="fa-solid fa-check-circle"></i> Consentido
@@ -74,6 +79,23 @@ function renderizarTabelaUsuarios(lista) {
             </tr>
         `;
     }).join("");
+}
+
+async function alternarPapelConta(id, login, papelAtual) {
+    const novoPapel = papelAtual === "mestre" ? "player" : "mestre";
+    try {
+        const res = await apiFetch(`/api/auth/usuarios/${id}/papel`, {
+            method: "PUT",
+            body: { papel: novoPapel }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.mensagem || "Erro ao alterar perfil.");
+
+        mostrarMensagemAdmin(`Perfil de "${login}" atualizado para ${novoPapel.toUpperCase()}!`, "success");
+        await carregarUsuarios();
+    } catch (err) {
+        mostrarMensagemAdmin(`Erro: ${err.message}`, "error");
+    }
 }
 
 function configurarFormCriacaoUsuario() {

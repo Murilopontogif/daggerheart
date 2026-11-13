@@ -192,9 +192,10 @@ function aoMudarRacaFichaGrande(sobrescreverTexto = true) {
     const raca = dadosSistema.ANCESTRALIDADES.find(a => a.nome === nome);
     document.getElementById("shHabRacaTitle").textContent = nome || "—";
     if (sobrescreverTexto && raca) {
-        const txt = raca.habilidades
-            ? raca.habilidades.map(h => `• ${h.nome}: ${h.descricao}`).join("\n\n")
-            : `${raca.poder1 ? `• ${raca.poder1}\n` : ""}${raca.poder2 ? `• ${raca.poder2}` : (raca.habilidade || "")}`;
+        const listaPoderes = raca.habilidades || raca.poderes;
+        const txt = Array.isArray(listaPoderes)
+            ? listaPoderes.map(h => `• ${h.nome}: ${h.descricao || h.desc || ""}`).join("\n\n")
+            : `${raca.poder1 ? `• ${raca.poder1}\n` : ""}${raca.poder2 ? `• ${raca.poder2}` : (raca.habilidade || raca.descricao || "")}`;
         document.getElementById("shHabilidadeRaca").value = txt;
     }
 }
@@ -206,12 +207,13 @@ function aoMudarRacaMista1FichaGrande() {
     const sel = document.getElementById("shPoderRaca1");
     sel.innerHTML = "";
     if (raca) {
-        const poderes = raca.habilidades || [
+        const poderes = raca.habilidades || raca.poderes || [
             raca.poder1 ? { nome: "1º Poder", descricao: raca.poder1 } : null,
             raca.poder2 ? { nome: "2º Poder", descricao: raca.poder2 } : null
         ].filter(Boolean);
         poderes.forEach(p => {
-            const label = p.descricao ? `${p.nome}: ${p.descricao}` : p.nome;
+            const desc = p.descricao || p.desc || "";
+            const label = desc ? `${p.nome}: ${desc}` : p.nome;
             sel.innerHTML += `<option value="${label.replace(/"/g, '&quot;')}">${p.nome}</option>`;
         });
     }
@@ -225,12 +227,13 @@ function aoMudarRacaMista2FichaGrande() {
     const sel = document.getElementById("shPoderRaca2");
     sel.innerHTML = "";
     if (raca) {
-        const poderes = raca.habilidades || [
+        const poderes = raca.habilidades || raca.poderes || [
             raca.poder1 ? { nome: "1º Poder", descricao: raca.poder1 } : null,
             raca.poder2 ? { nome: "2º Poder", descricao: raca.poder2 } : null
         ].filter(Boolean);
         poderes.forEach(p => {
-            const label = p.descricao ? `${p.nome}: ${p.descricao}` : p.nome;
+            const desc = p.descricao || p.desc || "";
+            const label = desc ? `${p.nome}: ${desc}` : p.nome;
             sel.innerHTML += `<option value="${label.replace(/"/g, '&quot;')}">${p.nome}</option>`;
         });
     }

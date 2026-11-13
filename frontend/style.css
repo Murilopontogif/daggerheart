@@ -3,52 +3,58 @@
    ========================================================================== */
 
 :root {
-    --bg-dark: #090a10;
-    --bg-card: rgba(16, 18, 28, 0.85);
-    --bg-card-hover: rgba(24, 28, 46, 0.95);
-    --bg-paper: #121524;
-    --bg-input: rgba(9, 11, 19, 0.9);
+    --bg-dark: #0e1621;
+    --bg-card: rgba(22, 34, 49, 0.86);
+    --bg-card-hover: rgba(31, 48, 69, 0.94);
+    --bg-paper: #152130;
+    --bg-input: rgba(14, 22, 33, 0.92);
     
-    /* Daggerheart Palettes (Hope & Fear, Gold & Amethyst) */
-    --accent-gold: #fbbf24;
-    --accent-amber: #f59e0b;
-    --accent-purple: #9d4edd;
-    --accent-amethyst: #7928ca;
+    /* Nova Paleta Oficial: #9ECEFC, #FCE49F, #FCCA9F, #385C7D, #7D755E */
+    --palette-sky: #9ECEFC;
+    --palette-gold: #FCE49F;
+    --palette-peach: #FCCA9F;
+    --palette-slate: #385C7D;
+    --palette-taupe: #7D755E;
+
+    --accent-gold: #FCE49F;
+    --accent-amber: #FCCA9F;
+    --accent-purple: #9ECEFC;
+    --accent-amethyst: #385C7D;
     --accent-crimson: #ef4444;
     --accent-emerald: #10b981;
-    --accent-cyan: #06b6d4;
+    --accent-cyan: #9ECEFC;
 
     /* Domains Colors */
-    --dom-arcano: #a855f7;
+    --dom-arcano: #9ECEFC;
     --dom-lamina: #ef4444;
     --dom-falange: #cbd5e1;
     --dom-codice: #38bdf8;
-    --dom-graca: #f43f5e;
-    --dom-meianoite: #818cf8;
+    --dom-graca: #FCCA9F;
+    --dom-meianoite: #385C7D;
     --dom-sabedoria: #10b981;
-    --dom-esplendor: #fbbf24;
-    --dom-valor: #fb923c;
+    --dom-esplendor: #FCE49F;
+    --dom-valor: #FCCA9F;
 
-    --gradient-gold: linear-gradient(135deg, #fbbf24, #d97706);
-    --gradient-fear: linear-gradient(135deg, #a855f7, #ec4899);
-    --gradient-primary: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
-    --gradient-accent: linear-gradient(135deg, #9d4edd, #e11d48);
+    --gradient-gold: linear-gradient(135deg, #FCE49F, #FCCA9F);
+    --gradient-fear: linear-gradient(135deg, #385C7D, #9ECEFC);
+    --gradient-primary: linear-gradient(135deg, #FCE49F, #FCCA9F);
+    --gradient-accent: linear-gradient(135deg, #385C7D, #527fa8);
 
     --text-main: #f8fafc;
-    --text-muted: #94a3b8;
-    --text-dim: #64748b;
+    --text-muted: #b8c7d9;
+    --text-dim: #7D755E;
 
-    --border-light: rgba(251, 191, 36, 0.15);
-    --border-glow: rgba(251, 191, 36, 0.45);
+    --border-light: rgba(158, 206, 252, 0.16);
+    --border-glow: rgba(252, 228, 159, 0.45);
     --border-subtle: rgba(255, 255, 255, 0.08);
 
     --radius-sm: 8px;
     --radius-md: 14px;
-    --radius-lg: 22px;
+    --radius-lg: 20px;
 
-    --shadow-glow-gold: 0 0 30px rgba(245, 158, 11, 0.25);
-    --shadow-glow-purple: 0 0 30px rgba(157, 78, 221, 0.25);
-    --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.65);
+    --shadow-glow-gold: 0 4px 24px rgba(252, 228, 159, 0.18);
+    --shadow-glow-purple: 0 4px 24px rgba(158, 206, 252, 0.2);
+    --shadow-card: 0 18px 42px rgba(5, 10, 18, 0.65);
 }
 
 /* Base Reset & Typography */
@@ -4128,4 +4134,199 @@ input[type="number"] {
     background: #0d101d;
     color: #ffffff;
 }
+
+/* ==========================================================================
+   REFINAMENTOS DE UI MINIMALISTA, MODERNA E RESPONSIVA (DESIGN 2.0)
+   ========================================================================== */
+
+/* Scrollbar Customizada Minimalista */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(9, 10, 16, 0.8);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(251, 191, 36, 0.25);
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(251, 191, 36, 0.5);
+}
+
+/* Hero Header e Navegação mais limpa e minimalista */
+.hero-header {
+    padding: 26px 34px;
+    min-height: 175px;
+    border: 1px solid rgba(158, 206, 252, 0.16);
+    background: linear-gradient(135deg, rgba(20, 32, 46, 0.94) 0%, rgba(56, 92, 125, 0.45) 100%);
+    box-shadow: 0 16px 40px rgba(5, 10, 18, 0.55);
+}
+
+.hero-content h1 span {
+    background: linear-gradient(135deg, #FCE49F, #FCCA9F, #9ECEFC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mode-tab-btn.active {
+    background: linear-gradient(135deg, rgba(158, 206, 252, 0.2), rgba(252, 228, 159, 0.16));
+    color: #FCE49F;
+    border-color: rgba(158, 206, 252, 0.48);
+    box-shadow: 0 4px 15px rgba(5, 10, 18, 0.35);
+}
+
+.glow-1 {
+    background: #385C7D;
+}
+
+.glow-2 {
+    background: #7D755E;
+}
+
+.glow-3 {
+    background: #9ECEFC;
+}
+
+.hero-content h1 {
+    font-size: 2.25rem;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+}
+
+.hero-content p {
+    font-size: 0.92rem;
+    color: #94a3b8;
+    max-width: 680px;
+}
+
+.app-mode-tabs {
+    margin-top: 18px;
+    gap: 8px;
+    background: rgba(7, 9, 15, 0.65);
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    flex-wrap: wrap;
+}
+
+.mode-tab-btn {
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+}
+
+.mode-tab-btn:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+    transform: none;
+}
+
+.mode-tab-btn.active {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(157, 78, 221, 0.18));
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.45);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* Demo Credentials Quick-Fill Box on Login Screen */
+.demo-credentials-box {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.demo-credentials-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.demo-credentials-label i {
+    color: var(--accent-gold);
+}
+
+.demo-pills-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.demo-pill-btn {
+    flex: 1;
+    min-width: 115px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    background: rgba(15, 18, 30, 0.9);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.demo-pill-btn.mestre:hover {
+    border-color: rgba(251, 191, 36, 0.6);
+    color: var(--accent-gold);
+    background: rgba(251, 191, 36, 0.12);
+}
+
+.demo-pill-btn.player:hover {
+    border-color: rgba(6, 182, 212, 0.6);
+    color: #67e8f9;
+    background: rgba(6, 182, 212, 0.12);
+}
+
+/* Filter Group Moderno */
+.filter-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(9, 11, 19, 0.75);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.filter-group select,
+.filter-group input {
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    outline: none;
+}
+
+.filter-group select option {
+    background: #0d101d;
+    color: #ffffff;
+}
+
 

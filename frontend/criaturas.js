@@ -127,14 +127,17 @@ function renderizarGridCriaturas(lista) {
 
                 <div class="bestiary-card-footer">
                     <button type="button" class="btn-card-action" onclick="abrirModalDetalhesCriatura(${id})" title="Ver ficha completa e todas as habilidades">
-                        <i class="fa-solid fa-eye"></i> Detalhes & Habilidades
+                        <i class="fa-solid fa-eye"></i> Detalhes
                     </button>
                     <div class="qty-picker">
                         <label>QTD</label>
                         <input type="number" id="qtyBestiary_${id}" value="1" min="1" max="10">
                     </div>
                     <button type="button" class="btn-card-action btn-card-equip" onclick="enviarMonstroParaCombate(${id}, '${nome.replace(/'/g, "\\'")}')">
-                        <i class="fa-solid fa-swords"></i> Ao Combate
+                        <i class="fa-solid fa-swords"></i> Combate
+                    </button>
+                    <button type="button" class="btn-icon-action" onclick="abrirModalEditarCriatura(${id})" title="Editar Criatura">
+                        <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <button type="button" class="btn-icon-action danger" onclick="deletarCriatura(${id}, '${nome.replace(/'/g, "\\'")}')" title="Excluir do Bestiário">
                         <i class="fa-solid fa-trash-can"></i>
@@ -180,12 +183,57 @@ async function deletarCriatura(id, nome) {
 }
 
 // ==========================================================================
-// MODAL DE CRIAÇÃO DE NOVA CRIATURA
+// MODAL DE CRIAÇÃO / EDIÇÃO DE CRIATURA
 // ==========================================================================
 
 function abrirModalNovaCriatura() {
+    const form = document.getElementById("formNovaCriatura");
+    form.reset();
+    document.getElementById("cIdEdicao").value = "";
+    document.getElementById("modalCriaturaTitleTag").innerHTML = `<i class="fa-solid fa-dragon"></i> FORJA DE NOVA CRIATURA / ADVERSÁRIO`;
+    document.getElementById("btnSalvarCriatura").innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>Salvar Criatura no Bestiário</span>`;
+    document.getElementById("listaHabilidadesCriatura").innerHTML = "";
+    adicionarLinhaHabilidadeCriatura("Investida Brutal", "Ação", "Gaste 1 Medo para avançar e realizar um ataque contra todos os alvos próximos.");
+    atualizarPreviewCriatura();
     document.getElementById("modalCriarCriatura").style.display = "flex";
 }
+
+function abrirModalEditarCriatura(id) {
+    const c = todasCriaturas.find(x => Number(x.id || x.ID) === Number(id));
+    if (!c) return;
+
+    document.getElementById("cIdEdicao").value = c.id || c.ID;
+    document.getElementById("modalCriaturaTitleTag").innerHTML = `<i class="fa-solid fa-pen-to-square"></i> EDITAR CRIATURA — ${(c.nome || c.name || "").toUpperCase()}`;
+    document.getElementById("btnSalvarCriatura").innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>Atualizar Criatura</span>`;
+
+    document.getElementById("cImagem").value = c.imagem || c.image || "";
+    document.getElementById("cNome").value = c.nome || c.name || "";
+    document.getElementById("cPatamar").value = String(c.patamar || c.tier || 1);
+    document.getElementById("cPapel").value = c.papel || c.role || "Padrão";
+    document.getElementById("cDificuldade").value = c.dificuldade || c.difficulty || 12;
+    document.getElementById("cLimiares").value = c.limiares || c.thresholds || "8 / 15";
+    document.getElementById("cPvMax").value = c.pvMaximo || c.hpMax || 4;
+    document.getElementById("cPfMax").value = c.pfMaximo || c.stressMax || 2;
+    document.getElementById("cBonusAtaque").value = c.bonusAtaque || c.atkBonus || "+2";
+    document.getElementById("cNomeAtaque").value = c.nomeAtaque || c.attackName || "";
+    document.getElementById("cDanoAtaque").value = c.danoAtaque || c.attackDamage || "";
+    document.getElementById("cTaticas").value = c.taticas || c.tactics || "";
+
+    const list = document.getElementById("listaHabilidadesCriatura");
+    list.innerHTML = "";
+    const habs = Array.isArray(c.habilidades) ? c.habilidades : (Array.isArray(c.abilities) ? c.abilities : []);
+    if (habs.length === 0) {
+        adicionarLinhaHabilidadeCriatura();
+    } else {
+        habs.forEach(h => {
+            adicionarLinhaHabilidadeCriatura(h.nome || h.name || "", h.tipo || h.type || "Ação", h.descricao || h.description || h.efeito || "");
+        });
+    }
+
+    atualizarPreviewCriatura();
+    document.getElementById("modalCriarCriatura").style.display = "flex";
+}
+window.abrirModalEditarCriatura = abrirModalEditarCriatura;
 
 function fecharModalNovaCriatura() {
     document.getElementById("modalCriarCriatura").style.display = "none";
@@ -264,12 +312,16 @@ function configurarFormCriacao() {
             IMAGEM: document.getElementById("cImagem").value.trim() || "img/enemies/placeholder.png"
         };
 
+        const idEdicao = document.getElementById("cIdEdicao").value.trim();
         const btn = document.getElementById("btnSalvarCriatura");
         btn.disabled = true;
 
         try {
-            const res = await apiFetch("/api/criaturas", {
-                method: "POST",
+            const url = idEdicao ? `/api/criaturas/${idEdicao}` : "/api/criaturas";
+            const metodo = idEdicao ? "PUT" : "POST";
+
+            const res = await apiFetch(url, {
+                method: metodo,
                 body: payload
             });
             const data = await res.json();
@@ -277,10 +329,16 @@ function configurarFormCriacao() {
 
             fecharModalNovaCriatura();
             form.reset();
+            document.getElementById("cIdEdicao").value = "";
             document.getElementById("listaHabilidadesCriatura").innerHTML = "";
             adicionarLinhaHabilidadeCriatura();
             atualizarPreviewCriatura();
-            mostrarFeedback(`🐉 Criatura "${payload.NOME}" cadastrada com sucesso no Bestiário!`, "success");
+            mostrarFeedback(
+                idEdicao
+                    ? `🐉 Criatura "${payload.NOME}" atualizada com sucesso!`
+                    : `🐉 Criatura "${payload.NOME}" cadastrada com sucesso no Bestiário!`,
+                "success"
+            );
             await carregarBestiario();
         } catch (err) {
             alert("Erro: " + err.message);
