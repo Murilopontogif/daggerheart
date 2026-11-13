@@ -33,23 +33,10 @@ export async function login(req, res) {
 
         const usuario = usuarios[0];
 
-        // Verificação segura de senha com suporte a bcrypt e migração transparente de texto puro
+        // Verificação segura de senha com bcrypt (hash de 10 rounds)
         let senhaValida = false;
         if (usuario.SENHA && (usuario.SENHA.startsWith("$2a$") || usuario.SENHA.startsWith("$2b$") || usuario.SENHA.startsWith("$2y$"))) {
             senhaValida = await bcrypt.compare(senha, usuario.SENHA);
-        } else {
-            // Comparação direta para senhas legadas em texto puro
-            senhaValida = (usuario.SENHA === senha);
-            if (senhaValida) {
-                // Atualização automática e segura para hash bcrypt
-                try {
-                    const novoHash = await bcrypt.hash(senha, 10);
-                    await pool.query("UPDATE USUARIOS SET SENHA = ? WHERE ID = ?", [novoHash, usuario.ID]);
-                    usuario.SENHA = novoHash;
-                } catch (e) {
-                    console.warn("Aviso ao atualizar senha para hash:", e.message);
-                }
-            }
         }
 
         if (!senhaValida) {
@@ -168,12 +155,43 @@ export async function me(req, res) {
 export async function listarUsuarios(req, res) {
     try {
         const [usuarios] = await pool.query(
-            "SELECT ID, LOGIN, SENHA, PAPEL, LGPD_ACEITE, DATA_CRIACAO FROM USUARIOS ORDER BY ID ASC"
+            "SELECT ID, LOGIN, PAPEL, LGPD_ACEITE, DATA_CRIACAO FROM USUARIOS ORDER BY ID ASC"
         );
         res.status(200).json(usuarios);
     } catch (err) {
         console.error("Erro ao listar usuários:", err);
         res.status(500).json({ mensagem: "Erro ao carregar lista de usuários." });
+    }
+}
+
+export async function atualizarPapelUsuario(req, res) {
+    try {
+        const id = Number(req.params.id);
+        const { papel } = req.body;
+
+        if (!papel || !["mestre", "player"].includes(papel.toLowerCase())) {
+            return res.status(400).json({ mensagem: "Papel inválido. Escolha 'mestre' ou 'player'." });
+        }
+
+        const [alvo] = await pool.query("SELECT * FROM USUARIOS WHERE ID = ?", [id]);
+        if (!alvo || alvo.length === 0) {
+            return res.status(404).json({ mensagem: "Usuário não encontrado." });
+        }
+
+        if (alvo[0].LOGIN.toLowerCase() === "mumu") {
+            return res.status(403).json({ mensagem: "O perfil da Conta Pai 'mumu' não pode ser rebaixado." });
+        }
+
+        const novoPapel = papel.toLowerCase();
+        await pool.query("UPDATE USUARIOS SET PAPEL = ? WHERE ID = ?", [novoPapel, id]);
+
+        res.status(200).json({
+            mensagem: `Perfil de '${alvo[0].LOGIN}' atualizado para '${novoPapel}'.`,
+            papel: novoPapel
+        });
+    } catch (err) {
+        console.error("Erro ao atualizar papel do usuário:", err);
+        res.status(500).json({ mensagem: "Erro ao atualizar perfil do usuário." });
     }
 }
 

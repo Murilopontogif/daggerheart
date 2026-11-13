@@ -21,10 +21,7 @@ router.get("/dados-sistema", (req, res, next) => {
             const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader.trim();
             req.user = jwt.verify(token, JWT_SECRET);
         } catch {
-            try {
-                const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : authHeader.trim();
-                req.user = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
-            } catch {}
+            // Token ausente ou inválido: prossegue sem perfil de mestre (filtra dados sensíveis)
         }
     }
     next();

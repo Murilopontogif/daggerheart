@@ -85,9 +85,12 @@ async function adicionarPersonagem(req, res) {
             EVASAO = 10,
             ARMADURA = 0,
             ARMADURA_SLOTS = 6,
+            ARMADURA_ATUAL = 0,
             ESPERANCA = 2,
             PV_MAXIMO = 6,
+            PV_ATUAL = 6,
             PF_MAXIMO = 6,
+            PF_ATUAL = 0,
             DANO_MENOR = 1,
             DANO_MAIOR = 2,
             DANO_GRAVE = 3,
@@ -115,12 +118,12 @@ async function adicionarPersonagem(req, res) {
             `INSERT INTO PERSONAGENS 
             (NOME, CLASSE, SUBCLASSE, ANCESTRALIDADE, ANCESTRALIDADE_SECUNDARIA, ANCESTRALIDADE_TIPO, COMUNIDADE, NIVEL, GENERO, 
              AGILIDADE, FORCA, ACUIDADE, INSTINTO, PRESENCA, CONHECIMENTO, 
-             EVASAO, ARMADURA, ARMADURA_SLOTS, ESPERANCA, PV_MAXIMO, PF_MAXIMO, 
+             EVASAO, ARMADURA, ARMADURA_SLOTS, ARMADURA_ATUAL, ESPERANCA, PV_MAXIMO, PV_ATUAL, PF_MAXIMO, PF_ATUAL, 
              DANO_MENOR, DANO_MAIOR, DANO_GRAVE, EXPERIENCIAS, HABILIDADES_CLASSE, 
              HABILIDADE_SUBCLASSE, HABILIDADE_COMUNIDADE, HABILIDADE_RACA,
              OURO_PUNHADOS, OURO_BOLSAS, OURO_BAU, ARMA_PRINCIPAL, ARMA_SECUNDARIA, 
              ARMADURA_ATIVA, INVENTARIO, CARTAS_DOMINIO, IMAGEM, USUARIO_ID) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 NOME,
                 CLASSE,
@@ -140,9 +143,12 @@ async function adicionarPersonagem(req, res) {
                 Number(EVASAO),
                 Number(ARMADURA),
                 Number(ARMADURA_SLOTS),
+                Number(ARMADURA_ATUAL),
                 Number(ESPERANCA),
                 Number(PV_MAXIMO),
+                Number(PV_ATUAL ?? PV_MAXIMO ?? 6),
                 Number(PF_MAXIMO),
+                Number(PF_ATUAL ?? 0),
                 Number(DANO_MENOR),
                 Number(DANO_MAIOR),
                 Number(DANO_GRAVE),
@@ -206,9 +212,12 @@ async function atualizarPersonagem(req, res) {
             EVASAO = 10,
             ARMADURA = 0,
             ARMADURA_SLOTS = 6,
+            ARMADURA_ATUAL = 0,
             ESPERANCA = 2,
             PV_MAXIMO = 6,
+            PV_ATUAL = 6,
             PF_MAXIMO = 6,
+            PF_ATUAL = 0,
             DANO_MENOR = 1,
             DANO_MAIOR = 2,
             DANO_GRAVE = 3,
@@ -237,7 +246,7 @@ async function atualizarPersonagem(req, res) {
             NOME = ?, CLASSE = ?, SUBCLASSE = ?, ANCESTRALIDADE = ?, ANCESTRALIDADE_SECUNDARIA = ?, ANCESTRALIDADE_TIPO = ?, 
             COMUNIDADE = ?, NIVEL = ?, GENERO = ?,
             AGILIDADE = ?, FORCA = ?, ACUIDADE = ?, INSTINTO = ?, PRESENCA = ?, CONHECIMENTO = ?, 
-            EVASAO = ?, ARMADURA = ?, ARMADURA_SLOTS = ?, ESPERANCA = ?, PV_MAXIMO = ?, PF_MAXIMO = ?, 
+            EVASAO = ?, ARMADURA = ?, ARMADURA_SLOTS = ?, ARMADURA_ATUAL = ?, ESPERANCA = ?, PV_MAXIMO = ?, PV_ATUAL = ?, PF_MAXIMO = ?, PF_ATUAL = ?, 
             DANO_MENOR = ?, DANO_MAIOR = ?, DANO_GRAVE = ?, EXPERIENCIAS = ?, HABILIDADES_CLASSE = ?, 
             HABILIDADE_SUBCLASSE = ?, HABILIDADE_COMUNIDADE = ?, HABILIDADE_RACA = ?,
             OURO_PUNHADOS = ?, OURO_BOLSAS = ?, OURO_BAU = ?, ARMA_PRINCIPAL = ?, ARMA_SECUNDARIA = ?, 
@@ -262,9 +271,12 @@ async function atualizarPersonagem(req, res) {
                 Number(EVASAO),
                 Number(ARMADURA),
                 Number(ARMADURA_SLOTS),
+                Number(ARMADURA_ATUAL),
                 Number(ESPERANCA),
                 Number(PV_MAXIMO),
+                Number(PV_ATUAL ?? PV_MAXIMO ?? 6),
                 Number(PF_MAXIMO),
+                Number(PF_ATUAL ?? 0),
                 Number(DANO_MENOR),
                 Number(DANO_MAIOR),
                 Number(DANO_GRAVE),
@@ -284,6 +296,12 @@ async function atualizarPersonagem(req, res) {
                 IMAGEM || null,
                 id
             ]
+        );
+
+        // Sincronizar também na tabela de combate caso o herói esteja ativo na arena
+        await pool.query(
+            "UPDATE COMBATE_HEROIS SET PV_ATUAL = ?, PF_ATUAL = ?, ARMADURA_MARCADA = ? WHERE PERSONAGEM_ID = ?",
+            [Number(PV_ATUAL ?? PV_MAXIMO ?? 6), Number(PF_ATUAL ?? 0), Number(ARMADURA_ATUAL), id]
         );
 
         if (resultado.affectedRows === 0) {

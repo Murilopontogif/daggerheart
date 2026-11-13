@@ -5,6 +5,7 @@ import {
     me,
     listarUsuarios,
     criarUsuario,
+    atualizarPapelUsuario,
     deletarUsuario,
     lgpdExcluirMinhaConta
 } from "../controllers/authController.js";
@@ -20,6 +21,7 @@ router.delete("/minha-conta", authMiddleware, lgpdExcluirMinhaConta);
 // Rotas restritas da Conta Pai (mumu)
 router.get("/usuarios", authMiddleware, requirePai, listarUsuarios);
 router.post("/usuarios", authMiddleware, requirePai, criarUsuario);
+router.put("/usuarios/:id/papel", authMiddleware, requirePai, atualizarPapelUsuario);
 router.delete("/usuarios/:id", authMiddleware, requirePai, deletarUsuario);
 
 export default router;

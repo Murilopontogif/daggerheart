@@ -20,19 +20,10 @@ export function authMiddleware(req, res, next) {
         req.user = decoded;
         return next();
     } catch (err) {
-        // Fallback transitório de compatibilidade para tokens antigos em Base64
-        try {
-            const legacyDecoded = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
-            if (legacyDecoded && legacyDecoded.id && legacyDecoded.login) {
-                req.user = legacyDecoded;
-                return next();
-            }
-        } catch {}
-
         if (err.name === "TokenExpiredError") {
             return res.status(401).json({ mensagem: "Sua sessão expirou. Faça login novamente." });
         }
-        return res.status(401).json({ mensagem: "Falha ao validar sessão de login." });
+        return res.status(401).json({ mensagem: "Token JWT inválido ou não assinado. Faça login novamente." });
     }
 }
 
