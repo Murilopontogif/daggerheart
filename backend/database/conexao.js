@@ -61,6 +61,7 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
                 NOME VARCHAR(120) NOT NULL,
                 DESCRICAO TEXT,
                 MESTRE_ID INT NOT NULL,
+                FEAR_POINTS INT NOT NULL DEFAULT 0,
                 DATA_CRIACAO DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `;
@@ -94,7 +95,8 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
             dbOuPool.exec(createCombateCriaturasSql);
             dbOuPool.exec(createCombateEstadoSql);
 
-            // Ensure COMBATE_ID exists in COMBATE_HEROIS & COMBATE_CRIATURAS
+            // Ensure COMBATE_ID exists in COMBATE_HEROIS & COMBATE_CRIATURAS & FEAR_POINTS in CAMPANHAS
+            try { dbOuPool.exec("ALTER TABLE CAMPANHAS ADD COLUMN FEAR_POINTS INTEGER NOT NULL DEFAULT 0;"); } catch {}
             try { dbOuPool.exec("ALTER TABLE COMBATE_HEROIS ADD COLUMN COMBATE_ID INTEGER NOT NULL DEFAULT 1;"); } catch {}
             try { dbOuPool.exec("ALTER TABLE COMBATE_CRIATURAS ADD COLUMN COMBATE_ID INTEGER NOT NULL DEFAULT 1;"); } catch {}
 

@@ -33,10 +33,15 @@ export async function obterEstadoCombate(req, res) {
             return res.status(200).json({ isMestre, combateId: null, fearPoints: 0, herois: [], criaturas: [] });
         }
 
-        // Buscar Medo (Fear Points 0 a 10) do combate específico
+        // Buscar Medo (Fear Points 0 a 10) da campanha à qual este combate pertence
         let fearPoints = 0;
         try {
-            const [fRows] = await pool.query("SELECT FEAR_POINTS FROM COMBATES WHERE ID = ?", [combateId]);
+            const [fRows] = await pool.query(`
+                SELECT cp.FEAR_POINTS
+                FROM COMBATES cb
+                JOIN CAMPANHAS cp ON cb.CAMPANHA_ID = cp.ID
+                WHERE cb.ID = ?
+            `, [combateId]);
             if (fRows && fRows.length > 0) {
                 fearPoints = Number(fRows[0].FEAR_POINTS) || 0;
             }
@@ -183,13 +188,23 @@ export async function atualizarMedoCombate(req, res) {
         if (!isMestre) {
             return res.status(403).json({ mensagem: "Apenas o Mestre pode alterar os Pontos de Medo." });
         }
+        let campanhaId = Number(req.body.campanhaId);
         const combateId = Number(req.body.combateId);
-        if (!combateId) {
-            return res.status(400).json({ mensagem: "combateId é obrigatório." });
+
+        if (!campanhaId && combateId) {
+            const [cbRows] = await pool.query("SELECT CAMPANHA_ID FROM COMBATES WHERE ID = ?", [combateId]);
+            if (cbRows && cbRows.length > 0) {
+                campanhaId = cbRows[0].CAMPANHA_ID;
+            }
         }
+
+        if (!campanhaId) {
+            return res.status(400).json({ mensagem: "campanhaId ou combateId é obrigatório." });
+        }
+
         const novoMedo = Math.max(0, Math.min(10, Number(req.body.fearPoints) || 0));
-        await pool.query("UPDATE COMBATES SET FEAR_POINTS = ? WHERE ID = ?", [novoMedo, combateId]);
-        res.status(200).json({ fearPoints: novoMedo, mensagem: "Medo atualizado." });
+        await pool.query("UPDATE CAMPANHAS SET FEAR_POINTS = ? WHERE ID = ?", [novoMedo, campanhaId]);
+        res.status(200).json({ fearPoints: novoMedo, mensagem: "Medo da campanha atualizado." });
     } catch (err) {
         console.error("Erro ao atualizar medo:", err);
         res.status(500).json({ mensagem: "Erro ao atualizar pontos de medo." });

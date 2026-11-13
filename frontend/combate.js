@@ -169,7 +169,7 @@ async function definirPontosMedo(novoValor) {
     try {
         await apiFetch("/api/combate/medo", {
             method: "PATCH",
-            body: { combateId: combateAtualId, fearPoints: val }
+            body: { campanhaId: campanhaAtualId, combateId: combateAtualId, fearPoints: val }
         });
     } catch (err) {
         console.error("Erro ao sincronizar medo:", err);
@@ -961,6 +961,7 @@ async function aoSelecionarCampanha(resetCombate = true) {
                     <option value="${p.ID}">#${p.ID} — ${p.NOME} (${p.CLASSE} Nv.${p.NIVEL || 1})${p.CRIADOR_NOME ? " [" + p.CRIADOR_NOME + "]" : ""}</option>
                 `).join("");
             }
+            renderizarElencoCampanha(listaMeusPersonagens);
         }
     } catch {}
 
@@ -977,6 +978,31 @@ async function aoSelecionarCampanha(resetCombate = true) {
             await carregarEstadoCombate();
         }
     } catch {}
+}
+
+function renderizarElencoCampanha(personagens) {
+    const container = document.getElementById("elencoCampanhaContainer");
+    const strip = document.getElementById("elencoCampanhaStrip");
+    if (!container || !strip) return;
+
+    if (!campanhaAtualId) {
+        container.style.display = "none";
+        return;
+    }
+
+    container.style.display = "flex";
+    if (!personagens || personagens.length === 0) {
+        strip.innerHTML = `<span style="font-size: 0.78rem; color: var(--text-muted);">Nenhum herói vinculado ainda.</span>`;
+        return;
+    }
+
+    strip.innerHTML = personagens.map(p => `
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px 4px 5px; background: rgba(14, 22, 33, 0.85); border: 1px solid rgba(158, 206, 252, 0.22); border-radius: 999px;">
+            ${p.IMAGEM ? `<img src="${p.IMAGEM}" alt="${p.NOME}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">` : `<span style="width: 24px; height: 24px; border-radius: 50%; background: rgba(252,228,159,0.18); color: var(--accent-gold); display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem;"><i class="fa-solid fa-user-shield"></i></span>`}
+            <span style="font-size: 0.78rem; font-weight: 700; color: #f8fafc;">${p.NOME}</span>
+            <span style="font-size: 0.68rem; color: var(--palette-sky); font-weight: 600;">${p.CLASSE} Nv.${p.NIVEL || 1}</span>
+        </div>
+    `).join("");
 }
 
 function renderizarAbasCombates(combates) {
