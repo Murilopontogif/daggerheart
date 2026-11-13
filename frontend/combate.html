@@ -23,9 +23,53 @@
         <div id="globalNavbarContainer"></div>
 
         <!-- ================================================================ -->
-        <!-- ARENA DE COMBATE OFICIAL & MEDIDOR DE MEDO (1 A 10)              -->
+        <!-- ARENA DE COMBATE POR CAMPANHA (MÚLTIPLOS COMBATES SALVOS)        -->
         <!-- ================================================================ -->
         <section id="viewArenaCombate" class="combat-arena-wrapper">
+
+            <!-- 0. PAINEL DE CAMPANHAS & COMBATES DA CAMPANHA -->
+            <div class="glass-card" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="icon-box icon-gold" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.72rem; font-weight: 800; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.06em;">Campanha Ativa</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                                <select id="selectCampanha" class="combat-select" onchange="aoSelecionarCampanha()" style="min-width: 240px;">
+                                    <option value="">Carregando campanhas...</option>
+                                </select>
+                                <button type="button" id="btnNovaCampanha" class="btn btn-primary btn-sm" style="display: none;" onclick="abrirModalNovaCampanha()">
+                                    <i class="fa-solid fa-plus"></i> Nova Campanha
+                                </button>
+                                <button type="button" id="btnGerenciarHeroisCampanha" class="btn btn-secondary btn-sm" style="display: none;" onclick="abrirModalPersonagensCampanha()">
+                                    <i class="fa-solid fa-users-gear"></i> Personagens da Campanha
+                                </button>
+                                <button type="button" id="btnExcluirCampanha" class="btn btn-secondary btn-sm" style="display: none; border-color: rgba(239,68,68,0.45); color: #fca5a5;" onclick="excluirCampanhaAtual()" title="Excluir Campanha">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="combatesCampanhaBar" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);"><i class="fa-solid fa-swords"></i> Combates Salvos:</span>
+                        <div id="listaCombatesTabs" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                        <button type="button" id="btnNovoCombate" class="btn btn-accent btn-sm" style="display: none;" onclick="abrirModalNovoCombate()">
+                            <i class="fa-solid fa-plus"></i> Novo Combate
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="semCombateAviso" class="glass-card" style="display: none; text-align: center; padding: 48px 24px;">
+                <i class="fa-solid fa-compass fa-3x" style="color: var(--accent-gold); margin-bottom: 14px;"></i>
+                <h3 style="font-family: 'Cinzel', serif; font-size: 1.4rem; margin-bottom: 8px;">Nenhum Combate Selecionado</h3>
+                <p id="semCombateTexto" style="color: var(--text-muted); max-width: 520px; margin: 0 auto;"></p>
+            </div>
+
+            <div id="arenaCombateConteudo" style="display: flex; flex-direction: column; gap: 22px;">
 
             <!-- 1. BARRA DE PONTOS DE MEDO DO MESTRE (1 a 10) -->
             <div class="fear-tracker-banner glass-card">
@@ -188,7 +232,65 @@
                     </div>
                 </div>
             </div>
+            </div>
         </section>
+    </div>
+
+    <!-- MODAL: NOVA CAMPANHA (MESTRE) -->
+    <div id="modalNovaCampanha" class="sheet-modal-backdrop" style="display: none; z-index: 9999;">
+        <div class="sheet-modal-dialog" style="max-width: 480px; height: auto;">
+            <div class="sheet-modal-topbar">
+                <span class="sheet-tag"><i class="fa-solid fa-map-location-dot"></i> Criar Nova Campanha</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalNovaCampanha()"><i class="fa-solid fa-xmark"></i> Fechar</button>
+            </div>
+            <form class="sheet-paper" style="gap: 14px;" onsubmit="event.preventDefault(); salvarNovaCampanha();">
+                <div class="input-group">
+                    <label>Nome da Campanha *</label>
+                    <input type="text" id="inputNomeCampanha" class="form-input" placeholder="Ex: A Queda de Arden" required>
+                </div>
+                <div class="input-group">
+                    <label>Descrição (Opcional)</label>
+                    <textarea id="inputDescCampanha" class="form-textarea" rows="3" placeholder="Resumo da aventura..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-check"></i> Criar Campanha</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: NOVO COMBATE NA CAMPANHA (MESTRE) -->
+    <div id="modalNovoCombate" class="sheet-modal-backdrop" style="display: none; z-index: 9999;">
+        <div class="sheet-modal-dialog" style="max-width: 440px; height: auto;">
+            <div class="sheet-modal-topbar">
+                <span class="sheet-tag"><i class="fa-solid fa-swords"></i> Novo Combate na Campanha</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalNovoCombate()"><i class="fa-solid fa-xmark"></i> Fechar</button>
+            </div>
+            <form class="sheet-paper" style="gap: 14px;" onsubmit="event.preventDefault(); salvarNovoCombate();">
+                <div class="input-group">
+                    <label>Nome do Encontro / Combate *</label>
+                    <input type="text" id="inputNomeCombate" class="form-input" placeholder="Ex: Emboscada na Ponte" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full"><i class="fa-solid fa-plus"></i> Criar e Abrir Combate</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PERSONAGENS DA CAMPANHA (MESTRE) -->
+    <div id="modalPersonagensCampanha" class="sheet-modal-backdrop" style="display: none; z-index: 9999;">
+        <div class="sheet-modal-dialog" style="max-width: 620px; height: auto; max-height: 85vh;">
+            <div class="sheet-modal-topbar">
+                <span class="sheet-tag"><i class="fa-solid fa-users-gear"></i> Personagens da Campanha</span>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="fecharModalPersonagensCampanha()"><i class="fa-solid fa-xmark"></i> Fechar</button>
+            </div>
+            <div class="sheet-paper" style="gap: 16px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="selectAddPersonagemCampanha" class="form-select" style="flex: 1;"></select>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="adicionarPersonagemNaCampanha()">
+                        <i class="fa-solid fa-user-plus"></i> Adicionar
+                    </button>
+                </div>
+                <div id="listaPersonagensCampanhaModal" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+        </div>
     </div>
 
     <!-- ===================================================================== -->

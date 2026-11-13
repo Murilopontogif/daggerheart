@@ -6,6 +6,7 @@ import personagensRoutes from "./routes/personagensRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import criaturasRoutes from "./routes/criaturasRoutes.js";
 import combateRoutes from "./routes/combateRoutes.js";
+import campanhasRoutes from "./routes/campanhasRoutes.js";
 import corsMiddleware from "./middlewares/corsMiddleware.js";
 import { testarconexao } from "./database/conexao.js";
 
@@ -23,6 +24,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 app.use("/api/auth", authRoutes);
 app.use("/api/criaturas", criaturasRoutes);
 app.use("/api/combate", combateRoutes);
+app.use("/api/campanhas", campanhasRoutes);
 app.use("/personagens", personagensRoutes);
 
 app.get("/api/status", function (req, res) {

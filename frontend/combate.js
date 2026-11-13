@@ -8,12 +8,17 @@ if (!sessao) throw new Error("Acesso não autorizado.");
 const isMestre = sessao.usuario.papel === "mestre";
 let estadoCombate = { fearPoints: 0, herois: [], criaturas: [] };
 let listaMeusPersonagens = [];
+let listaTodosPersonagens = [];
 let listaInimigosBestiario = [];
+let listaCampanhas = [];
+let listaCombatesCampanha = [];
+let campanhaAtualId = Number(localStorage.getItem("dh_campanha_id")) || null;
+let combateAtualId = Number(localStorage.getItem("dh_combate_id")) || null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     configurarVisaoPapel();
     renderizarBarraMedo(0);
-    await carregarEstadoCombate();
+    await carregarCampanhas();
     await carregarOpcoesAuxiliares();
 
     // Sincronização automática da arena a cada 4 segundos
@@ -30,6 +35,10 @@ function configurarVisaoPapel() {
         document.getElementById("btnMestreAddMonstroCol").style.display = "inline-flex";
         document.getElementById("btnMestreLimparArena").style.display = "inline-flex";
         document.getElementById("btnColocarTodosHerois").style.display = "inline-flex";
+        document.getElementById("btnNovaCampanha").style.display = "inline-flex";
+        document.getElementById("btnGerenciarHeroisCampanha").style.display = "inline-flex";
+        document.getElementById("btnExcluirCampanha").style.display = "inline-flex";
+        document.getElementById("btnNovoCombate").style.display = "inline-flex";
         subEnemies.textContent = "Gerencie PV, Fadiga, Armadura, Habilidades e Anotações dos Inimigos";
     } else {
         lbl.innerHTML = `<span class="badge-player"><i class="fa-solid fa-shield-halved"></i> Jogador (Edita apenas seu Herói • Monstros Ocultos)</span>`;
@@ -41,6 +50,18 @@ function configurarVisaoPapel() {
 }
 
 async function carregarEstadoCombate() {
+    if (!combateAtualId) {
+        document.getElementById("arenaCombateConteudo").style.display = "none";
+        document.getElementById("semCombateAviso").style.display = "block";
+        document.getElementById("semCombateTexto").textContent = !campanhaAtualId
+            ? (isMestre ? "Crie uma Campanha acima, adicione personagens a ela e crie um ou mais combates." : "Você ainda não está em nenhuma campanha. Peça ao Mestre para adicionar seu personagem a uma campanha.")
+            : (isMestre ? "Clique em '+ Novo Combate' acima para criar um encontro salvo nesta campanha." : "Aguardando o Mestre criar um combate nesta campanha.");
+        return;
+    }
+
+    document.getElementById("arenaCombateConteudo").style.display = "flex";
+    document.getElementById("semCombateAviso").style.display = "none";
+
     // Evitar re-render se o usuário estiver digitando em um campo de texto/nota dentro da arena
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.classList.contains("enemy-notes-textarea") || activeEl.classList.contains("enemy-instance-name-input"))) {
@@ -48,7 +69,7 @@ async function carregarEstadoCombate() {
     }
 
     try {
-        const res = await apiFetch("/api/combate/estado");
+        const res = await apiFetch(`/api/combate/estado?combateId=${combateAtualId}`);
         if (!res.ok) return;
 
         estadoCombate = await res.json();
@@ -141,14 +162,14 @@ function alterarPontosMedo(delta) {
 }
 
 async function definirPontosMedo(novoValor) {
-    if (!isMestre) return;
+    if (!isMestre || !combateAtualId) return;
     const val = Math.max(0, Math.min(10, Number(novoValor) || 0));
     renderizarBarraMedo(val);
 
     try {
         await apiFetch("/api/combate/medo", {
             method: "PATCH",
-            body: { fearPoints: val }
+            body: { combateId: combateAtualId, fearPoints: val }
         });
     } catch (err) {
         console.error("Erro ao sincronizar medo:", err);
@@ -646,7 +667,7 @@ async function adicionarHeroiSelecionadoAoCombate() {
     try {
         const res = await apiFetch("/api/combate/adicionar-heroi", {
             method: "POST",
-            body: { personagemId: id }
+            body: { personagemId: id, combateId: combateAtualId }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.mensagem || "Erro ao adicionar herói.");
@@ -664,7 +685,7 @@ async function adicionarTodosHeroisAoCombate() {
         try {
             await apiFetch("/api/combate/adicionar-heroi", {
                 method: "POST",
-                body: { personagemId: p.ID }
+                body: { personagemId: p.ID, combateId: combateAtualId }
             });
         } catch {}
     }
@@ -683,7 +704,10 @@ async function removerDoCombate(tipo, id) {
 async function limparArenaCombate() {
     if (!confirm("Deseja remover todos os heróis e criaturas da arena de combate?")) return;
     try {
-        const res = await apiFetch("/api/combate/limpar", { method: "POST" });
+        const res = await apiFetch("/api/combate/limpar", {
+            method: "POST",
+            body: { combateId: combateAtualId }
+        });
         if (res.ok) await carregarEstadoCombate();
     } catch (err) {
         alert("Erro ao limpar arena: " + err.message);
@@ -797,7 +821,7 @@ async function invocarMonstroDoBestiario(inimigoId) {
     try {
         const res = await apiFetch("/api/combate/adicionar-criatura", {
             method: "POST",
-            body: { inimigoId: Number(inimigoId), quantidade }
+            body: { inimigoId: Number(inimigoId), quantidade, combateId: combateAtualId }
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.mensagem || "Erro ao invocar criatura.");
@@ -814,7 +838,7 @@ async function duplicarCriaturaCombate(inimigoId, nomeAtual) {
     try {
         await apiFetch("/api/combate/adicionar-criatura", {
             method: "POST",
-            body: { inimigoId: Number(inimigoId), quantidade: 1 }
+            body: { inimigoId: Number(inimigoId), quantidade: 1, combateId: combateAtualId }
         });
         await carregarEstadoCombate();
     } catch (err) {
@@ -869,3 +893,236 @@ function rolarDadosDualidade() {
     }, 55);
 }
 window.rolarDadosDualidade = rolarDadosDualidade;
+
+// ==========================================================================
+// 7. GESTÃO DE CAMPANHAS & MÚLTIPLOS COMBATES SALVOS
+// ==========================================================================
+
+async function carregarCampanhas() {
+    try {
+        const res = await apiFetch("/api/campanhas");
+        if (!res.ok) return;
+        listaCampanhas = await res.json();
+
+        const sel = document.getElementById("selectCampanha");
+        if (listaCampanhas.length === 0) {
+            sel.innerHTML = `<option value="">Nenhuma campanha encontrada</option>`;
+            campanhaAtualId = null;
+            combateAtualId = null;
+            localStorage.removeItem("dh_campanha_id");
+            localStorage.removeItem("dh_combate_id");
+            renderizarAbasCombates([]);
+            await carregarEstadoCombate();
+            return;
+        }
+
+        if (!campanhaAtualId || !listaCampanhas.some(c => c.ID === campanhaAtualId)) {
+            campanhaAtualId = listaCampanhas[0].ID;
+            localStorage.setItem("dh_campanha_id", campanhaAtualId);
+        }
+
+        sel.innerHTML = listaCampanhas.map(c =>
+            `<option value="${c.ID}" ${c.ID === campanhaAtualId ? "selected" : ""}>${c.NOME} (${c.TOTAL_COMBATES || 0} combates)</option>`
+        ).join("");
+
+        await aoSelecionarCampanha(false);
+    } catch (err) {
+        console.error("Erro ao carregar campanhas:", err);
+    }
+}
+
+async function aoSelecionarCampanha(resetCombate = true) {
+    const sel = document.getElementById("selectCampanha");
+    campanhaAtualId = Number(sel.value) || null;
+    if (campanhaAtualId) localStorage.setItem("dh_campanha_id", campanhaAtualId);
+    else localStorage.removeItem("dh_campanha_id");
+
+    if (resetCombate) {
+        combateAtualId = null;
+        localStorage.removeItem("dh_combate_id");
+    }
+
+    if (!campanhaAtualId) {
+        renderizarAbasCombates([]);
+        await carregarEstadoCombate();
+        return;
+    }
+
+    // Carregar personagens da campanha para o select de adicionar herói
+    try {
+        const resP = await apiFetch(`/api/campanhas/${campanhaAtualId}/personagens`);
+        if (resP.ok) {
+            listaMeusPersonagens = await resP.json();
+            const selH = document.getElementById("selectHeroiParaCombate");
+            if (listaMeusPersonagens.length === 0) {
+                selH.innerHTML = `<option value="">Nenhum personagem nesta campanha</option>`;
+            } else {
+                selH.innerHTML = `<option value="">Selecione um herói da campanha...</option>` + listaMeusPersonagens.map(p => `
+                    <option value="${p.ID}">#${p.ID} — ${p.NOME} (${p.CLASSE} Nv.${p.NIVEL || 1})${p.CRIADOR_NOME ? " [" + p.CRIADOR_NOME + "]" : ""}</option>
+                `).join("");
+            }
+        }
+    } catch {}
+
+    // Carregar combates da campanha
+    try {
+        const resC = await apiFetch(`/api/campanhas/${campanhaAtualId}/combates`);
+        if (resC.ok) {
+            listaCombatesCampanha = await resC.json();
+            if (!combateAtualId || !listaCombatesCampanha.some(cb => cb.ID === combateAtualId)) {
+                combateAtualId = listaCombatesCampanha.length > 0 ? listaCombatesCampanha[0].ID : null;
+            }
+            if (combateAtualId) localStorage.setItem("dh_combate_id", combateAtualId);
+            renderizarAbasCombates(listaCombatesCampanha);
+            await carregarEstadoCombate();
+        }
+    } catch {}
+}
+
+function renderizarAbasCombates(combates) {
+    const container = document.getElementById("listaCombatesTabs");
+    if (!container) return;
+
+    if (!combates || combates.length === 0) {
+        container.innerHTML = `<span style="font-size: 0.78rem; color: var(--text-muted);">Nenhum combate salvo</span>`;
+        return;
+    }
+
+    container.innerHTML = combates.map(cb => {
+        const ativo = cb.ID === combateAtualId;
+        return `
+            <div style="display: inline-flex; align-items: center; gap: 4px; background: ${ativo ? "rgba(252, 228, 159, 0.18)" : "rgba(9,11,19,0.7)"}; border: 1px solid ${ativo ? "var(--accent-gold)" : "rgba(255,255,255,0.12)"}; border-radius: 8px; padding: 4px 8px;">
+                <button type="button" onclick="selecionarCombate(${cb.ID})" style="background: transparent; border: none; color: ${ativo ? "var(--accent-gold)" : "#e2e8f0"}; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+                    <i class="fa-solid fa-swords"></i> ${cb.NOME}
+                </button>
+                ${isMestre ? `
+                <button type="button" onclick="excluirCombate(${cb.ID})" title="Excluir Combate" style="background: transparent; border: none; color: #fca5a5; cursor: pointer; font-size: 0.75rem; padding: 0 3px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>` : ""}
+            </div>
+        `;
+    }).join("");
+}
+
+async function selecionarCombate(id) {
+    combateAtualId = Number(id);
+    localStorage.setItem("dh_combate_id", combateAtualId);
+    renderizarAbasCombates(listaCombatesCampanha);
+    await carregarEstadoCombate();
+}
+
+function abrirModalNovaCampanha() {
+    document.getElementById("inputNomeCampanha").value = "";
+    document.getElementById("inputDescCampanha").value = "";
+    document.getElementById("modalNovaCampanha").style.display = "flex";
+}
+function fecharModalNovaCampanha() {
+    document.getElementById("modalNovaCampanha").style.display = "none";
+}
+
+async function salvarNovaCampanha() {
+    const nome = document.getElementById("inputNomeCampanha").value.trim();
+    const descricao = document.getElementById("inputDescCampanha").value.trim();
+    if (!nome) return;
+
+    const res = await apiFetch("/api/campanhas", { method: "POST", body: { nome, descricao } });
+    const data = await res.json();
+    if (!res.ok) return alert(data.mensagem || "Erro ao criar campanha.");
+
+    campanhaAtualId = data.id;
+    localStorage.setItem("dh_campanha_id", campanhaAtualId);
+    fecharModalNovaCampanha();
+    await carregarCampanhas();
+}
+
+async function excluirCampanhaAtual() {
+    if (!campanhaAtualId) return;
+    if (!confirm("Excluir esta campanha e todos os combates salvos dentro dela?")) return;
+    await apiFetch(`/api/campanhas/${campanhaAtualId}`, { method: "DELETE" });
+    campanhaAtualId = null;
+    combateAtualId = null;
+    await carregarCampanhas();
+}
+
+function abrirModalNovoCombate() {
+    if (!campanhaAtualId) return alert("Crie ou selecione uma campanha primeiro.");
+    document.getElementById("inputNomeCombate").value = "";
+    document.getElementById("modalNovoCombate").style.display = "flex";
+}
+function fecharModalNovoCombate() {
+    document.getElementById("modalNovoCombate").style.display = "none";
+}
+
+async function salvarNovoCombate() {
+    const nome = document.getElementById("inputNomeCombate").value.trim();
+    if (!nome || !campanhaAtualId) return;
+
+    const res = await apiFetch(`/api/campanhas/${campanhaAtualId}/combates`, { method: "POST", body: { nome } });
+    const data = await res.json();
+    if (!res.ok) return alert(data.mensagem || "Erro ao criar combate.");
+
+    combateAtualId = data.id;
+    localStorage.setItem("dh_combate_id", combateAtualId);
+    fecharModalNovoCombate();
+    await aoSelecionarCampanha(false);
+}
+
+async function excluirCombate(combateId) {
+    if (!confirm("Excluir este combate salvo da campanha?")) return;
+    await apiFetch(`/api/campanhas/${campanhaAtualId}/combates/${combateId}`, { method: "DELETE" });
+    if (combateAtualId === combateId) combateAtualId = null;
+    await aoSelecionarCampanha(false);
+}
+
+async function abrirModalPersonagensCampanha() {
+    if (!campanhaAtualId) return alert("Crie ou selecione uma campanha primeiro.");
+    document.getElementById("modalPersonagensCampanha").style.display = "flex";
+    await atualizarModalPersonagensCampanha();
+}
+function fecharModalPersonagensCampanha() {
+    document.getElementById("modalPersonagensCampanha").style.display = "none";
+}
+
+async function atualizarModalPersonagensCampanha() {
+    const resAll = await apiFetch("/personagens");
+    listaTodosPersonagens = resAll.ok ? await resAll.json() : [];
+
+    const resCamp = await apiFetch(`/api/campanhas/${campanhaAtualId}/personagens`);
+    const naCampanha = resCamp.ok ? await resCamp.json() : [];
+    const idsNaCampanha = new Set(naCampanha.map(p => p.ID));
+
+    const sel = document.getElementById("selectAddPersonagemCampanha");
+    const disponiveis = listaTodosPersonagens.filter(p => !idsNaCampanha.has(p.ID));
+    sel.innerHTML = disponiveis.length === 0
+        ? `<option value="">Todos os personagens já estão na campanha</option>`
+        : disponiveis.map(p => `<option value="${p.ID}">#${p.ID} — ${p.NOME} (${p.CLASSE}) [${p.CRIADOR_NOME || "Usuário"}]</option>`).join("");
+
+    const listEl = document.getElementById("listaPersonagensCampanhaModal");
+    listEl.innerHTML = naCampanha.length === 0
+        ? `<p style="color: var(--text-muted); font-size: 0.85rem;">Nenhum personagem adicionado a esta campanha ainda.</p>`
+        : naCampanha.map(p => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(9,11,19,0.75); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+                <div>
+                    <strong style="color: #fff;">${p.NOME}</strong>
+                    <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 8px;">${p.CLASSE} Nv.${p.NIVEL || 1} • ${p.CRIADOR_NOME || ""}</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" style="border-color: rgba(239,68,68,0.45); color: #fca5a5;" onclick="removerPersonagemDaCampanha(${p.ID})">
+                    <i class="fa-solid fa-trash-can"></i> Remover
+                </button>
+            </div>
+        `).join("");
+}
+
+async function adicionarPersonagemNaCampanha() {
+    const personagemId = Number(document.getElementById("selectAddPersonagemCampanha").value);
+    if (!personagemId) return;
+    await apiFetch(`/api/campanhas/${campanhaAtualId}/personagens`, { method: "POST", body: { personagemId } });
+    await atualizarModalPersonagensCampanha();
+    await aoSelecionarCampanha(false);
+}
+
+async function removerPersonagemDaCampanha(personagemId) {
+    await apiFetch(`/api/campanhas/${campanhaAtualId}/personagens/${personagemId}`, { method: "DELETE" });
+    await atualizarModalPersonagensCampanha();
+    await aoSelecionarCampanha(false);
+}

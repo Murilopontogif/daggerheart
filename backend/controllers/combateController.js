@@ -27,11 +27,16 @@ export async function obterEstadoCombate(req, res) {
     try {
         const isMestre = req.user && req.user.papel === "mestre";
         const userId = req.user ? req.user.id : 0;
+        const combateId = Number(req.query.combateId);
 
-        // Buscar Medo (Fear Points 0 a 10)
+        if (!combateId) {
+            return res.status(200).json({ isMestre, combateId: null, fearPoints: 0, herois: [], criaturas: [] });
+        }
+
+        // Buscar Medo (Fear Points 0 a 10) do combate específico
         let fearPoints = 0;
         try {
-            const [fRows] = await pool.query("SELECT FEAR_POINTS FROM COMBATE_ESTADO WHERE ID = 1");
+            const [fRows] = await pool.query("SELECT FEAR_POINTS FROM COMBATES WHERE ID = ?", [combateId]);
             if (fRows && fRows.length > 0) {
                 fearPoints = Number(fRows[0].FEAR_POINTS) || 0;
             }
@@ -64,8 +69,9 @@ export async function obterEstadoCombate(req, res) {
                 p.USUARIO_ID
             FROM COMBATE_HEROIS ch
             JOIN PERSONAGENS p ON ch.PERSONAGEM_ID = p.ID
+            WHERE ch.COMBATE_ID = ?
             ORDER BY ch.ID ASC
-        `);
+        `, [combateId]);
 
         // Buscar Criaturas no Combate
         const [criaturasRows] = await pool.query(`
@@ -93,8 +99,9 @@ export async function obterEstadoCombate(req, res) {
                 i.IMAGEM
             FROM COMBATE_CRIATURAS cc
             JOIN INIMIGOS i ON cc.INIMIGO_ID = i.ID
+            WHERE cc.COMBATE_ID = ?
             ORDER BY cc.ID ASC
-        `);
+        `, [combateId]);
 
         const herois = heroisRows.map(h => ({
             instanciaId: h.INSTANCIA_ID,
@@ -176,8 +183,12 @@ export async function atualizarMedoCombate(req, res) {
         if (!isMestre) {
             return res.status(403).json({ mensagem: "Apenas o Mestre pode alterar os Pontos de Medo." });
         }
+        const combateId = Number(req.body.combateId);
+        if (!combateId) {
+            return res.status(400).json({ mensagem: "combateId é obrigatório." });
+        }
         const novoMedo = Math.max(0, Math.min(10, Number(req.body.fearPoints) || 0));
-        await pool.query("UPDATE COMBATE_ESTADO SET FEAR_POINTS = ? WHERE ID = 1", [novoMedo]);
+        await pool.query("UPDATE COMBATES SET FEAR_POINTS = ? WHERE ID = ?", [novoMedo, combateId]);
         res.status(200).json({ fearPoints: novoMedo, mensagem: "Medo atualizado." });
     } catch (err) {
         console.error("Erro ao atualizar medo:", err);
@@ -187,9 +198,9 @@ export async function atualizarMedoCombate(req, res) {
 
 export async function adicionarHeroiCombate(req, res) {
     try {
-        const { personagemId } = req.body;
-        if (!personagemId) {
-            return res.status(400).json({ mensagem: "ID do personagem é obrigatório." });
+        const { personagemId, combateId } = req.body;
+        if (!personagemId || !combateId) {
+            return res.status(400).json({ mensagem: "ID do personagem e do combate são obrigatórios." });
         }
 
         const [pRows] = await pool.query("SELECT * FROM PERSONAGENS WHERE ID = ?", [personagemId]);
@@ -203,15 +214,18 @@ export async function adicionarHeroiCombate(req, res) {
             return res.status(403).json({ mensagem: "Você só pode adicionar seu próprio personagem ao combate." });
         }
 
-        // Checar se já está no combate
-        const [existente] = await pool.query("SELECT ID FROM COMBATE_HEROIS WHERE PERSONAGEM_ID = ?", [personagemId]);
+        // Checar se já está neste combate
+        const [existente] = await pool.query(
+            "SELECT ID FROM COMBATE_HEROIS WHERE PERSONAGEM_ID = ? AND COMBATE_ID = ?",
+            [personagemId, Number(combateId)]
+        );
         if (existente && existente.length > 0) {
-            return res.status(400).json({ mensagem: "Este herói já está na arena de combate." });
+            return res.status(400).json({ mensagem: "Este herói já está neste combate." });
         }
 
         await pool.query(
-            "INSERT INTO COMBATE_HEROIS (PERSONAGEM_ID, PV_ATUAL, PF_ATUAL, ARMADURA_MARCADA) VALUES (?, ?, ?, ?)",
-            [personagemId, p.PV_ATUAL ?? p.PV_MAXIMO ?? 6, p.PF_ATUAL ?? 0, p.ARMADURA_ATUAL ?? 0]
+            "INSERT INTO COMBATE_HEROIS (COMBATE_ID, PERSONAGEM_ID, PV_ATUAL, PF_ATUAL, ARMADURA_MARCADA) VALUES (?, ?, ?, ?, ?)",
+            [Number(combateId), personagemId, p.PV_ATUAL ?? p.PV_MAXIMO ?? 6, p.PF_ATUAL ?? 0, p.ARMADURA_ATUAL ?? 0]
         );
 
         res.status(201).json({ mensagem: `${p.NOME} entrou no combate!` });
@@ -223,9 +237,9 @@ export async function adicionarHeroiCombate(req, res) {
 
 export async function adicionarCriaturaCombate(req, res) {
     try {
-        const { inimigoId, nomeCustom, quantidade } = req.body;
-        if (!inimigoId) {
-            return res.status(400).json({ mensagem: "ID do monstro é obrigatório." });
+        const { inimigoId, nomeCustom, quantidade, combateId } = req.body;
+        if (!inimigoId || !combateId) {
+            return res.status(400).json({ mensagem: "ID do monstro e do combate são obrigatórios." });
         }
 
         const [iRows] = await pool.query("SELECT * FROM INIMIGOS WHERE ID = ?", [inimigoId]);
@@ -236,8 +250,11 @@ export async function adicionarCriaturaCombate(req, res) {
         const i = iRows[0];
         const qtd = Math.max(1, Math.min(15, Number(quantidade) || 1));
 
-        // Contar quantos desse monstro já estão em combate para numerar (#1, #2...)
-        const [existentes] = await pool.query("SELECT COUNT(*) as total FROM COMBATE_CRIATURAS WHERE INIMIGO_ID = ?", [inimigoId]);
+        // Contar quantos desse monstro já estão neste combate para numerar (#1, #2...)
+        const [existentes] = await pool.query(
+            "SELECT COUNT(*) as total FROM COMBATE_CRIATURAS WHERE INIMIGO_ID = ? AND COMBATE_ID = ?",
+            [inimigoId, Number(combateId)]
+        );
         let baseCount = existentes && existentes[0] ? Number(existentes[0].total) || 0 : 0;
 
         for (let k = 0; k < qtd; k++) {
@@ -245,8 +262,8 @@ export async function adicionarCriaturaCombate(req, res) {
             const sufixo = (qtd > 1 || baseCount > 1) ? ` #${baseCount}` : "";
             const nomeInstancia = nomeCustom && nomeCustom.trim() ? `${nomeCustom.trim()}${qtd > 1 ? ` #${k + 1}` : ""}` : `${i.NOME}${sufixo}`;
             await pool.query(
-                "INSERT INTO COMBATE_CRIATURAS (INIMIGO_ID, NOME_INSTANCIA, PV_ATUAL, PF_ATUAL, ARMADURA_MARCADA, ARMADURA_MAXIMA, NOTAS) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [inimigoId, nomeInstancia, i.PV_MAXIMO || 1, 0, 0, 0, ""]
+                "INSERT INTO COMBATE_CRIATURAS (COMBATE_ID, INIMIGO_ID, NOME_INSTANCIA, PV_ATUAL, PF_ATUAL, ARMADURA_MARCADA, ARMADURA_MAXIMA, NOTAS) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                [Number(combateId), inimigoId, nomeInstancia, i.PV_MAXIMO || 1, 0, 0, 0, ""]
             );
         }
 
@@ -370,8 +387,12 @@ export async function atualizarStatusCombate(req, res) {
 
 export async function limparArenaCombate(req, res) {
     try {
-        await pool.query("DELETE FROM COMBATE_HEROIS");
-        await pool.query("DELETE FROM COMBATE_CRIATURAS");
+        const combateId = Number(req.body.combateId || req.query.combateId);
+        if (!combateId) {
+            return res.status(400).json({ mensagem: "combateId é obrigatório." });
+        }
+        await pool.query("DELETE FROM COMBATE_HEROIS WHERE COMBATE_ID = ?", [combateId]);
+        await pool.query("DELETE FROM COMBATE_CRIATURAS WHERE COMBATE_ID = ?", [combateId]);
         res.status(200).json({ mensagem: "Arena de combate reiniciada com sucesso." });
     } catch (err) {
         res.status(500).json({ mensagem: "Erro ao reiniciar arena." });

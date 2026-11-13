@@ -55,11 +55,48 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
             );
         `;
 
+        const createCampanhasSql = `
+            CREATE TABLE IF NOT EXISTS CAMPANHAS (
+                ID ${isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT PRIMARY KEY AUTO_INCREMENT"},
+                NOME VARCHAR(120) NOT NULL,
+                DESCRICAO TEXT,
+                MESTRE_ID INT NOT NULL,
+                DATA_CRIACAO DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+
+        const createCampanhaPersonagensSql = `
+            CREATE TABLE IF NOT EXISTS CAMPANHA_PERSONAGENS (
+                ID ${isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT PRIMARY KEY AUTO_INCREMENT"},
+                CAMPANHA_ID INT NOT NULL,
+                PERSONAGEM_ID INT NOT NULL,
+                UNIQUE(CAMPANHA_ID, PERSONAGEM_ID)
+            );
+        `;
+
+        const createCombatesSql = `
+            CREATE TABLE IF NOT EXISTS COMBATES (
+                ID ${isSqlite ? "INTEGER PRIMARY KEY AUTOINCREMENT" : "INT PRIMARY KEY AUTO_INCREMENT"},
+                CAMPANHA_ID INT NOT NULL,
+                NOME VARCHAR(120) NOT NULL,
+                FEAR_POINTS INT NOT NULL DEFAULT 0,
+                ATIVO BOOLEAN DEFAULT 1,
+                DATA_CRIACAO DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        `;
+
         if (isSqlite) {
             dbOuPool.exec(createUsuariosSql);
+            dbOuPool.exec(createCampanhasSql);
+            dbOuPool.exec(createCampanhaPersonagensSql);
+            dbOuPool.exec(createCombatesSql);
             dbOuPool.exec(createCombateHeroisSql);
             dbOuPool.exec(createCombateCriaturasSql);
             dbOuPool.exec(createCombateEstadoSql);
+
+            // Ensure COMBATE_ID exists in COMBATE_HEROIS & COMBATE_CRIATURAS
+            try { dbOuPool.exec("ALTER TABLE COMBATE_HEROIS ADD COLUMN COMBATE_ID INTEGER NOT NULL DEFAULT 1;"); } catch {}
+            try { dbOuPool.exec("ALTER TABLE COMBATE_CRIATURAS ADD COLUMN COMBATE_ID INTEGER NOT NULL DEFAULT 1;"); } catch {}
 
             // Seed estado combate (Medo = 0)
             const estado = dbOuPool.prepare("SELECT * FROM COMBATE_ESTADO WHERE ID = 1").get();
