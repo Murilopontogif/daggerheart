@@ -1025,14 +1025,20 @@ async function salvarNovaCampanha() {
     const descricao = document.getElementById("inputDescCampanha").value.trim();
     if (!nome) return;
 
-    const res = await apiFetch("/api/campanhas", { method: "POST", body: { nome, descricao } });
-    const data = await res.json();
-    if (!res.ok) return alert(data.mensagem || "Erro ao criar campanha.");
+    try {
+        const res = await apiFetch("/api/campanhas", { method: "POST", body: { nome, descricao } });
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch {}
+        if (!res.ok) return alert(data.mensagem || `Erro ${res.status} ao criar campanha. Reinicie o servidor se necessário.`);
 
-    campanhaAtualId = data.id;
-    localStorage.setItem("dh_campanha_id", campanhaAtualId);
-    fecharModalNovaCampanha();
-    await carregarCampanhas();
+        campanhaAtualId = data.id;
+        localStorage.setItem("dh_campanha_id", campanhaAtualId);
+        fecharModalNovaCampanha();
+        await carregarCampanhas();
+    } catch (err) {
+        alert("Erro ao criar campanha: " + err.message);
+    }
 }
 
 async function excluirCampanhaAtual() {
