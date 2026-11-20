@@ -72,6 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Gestão de Contas</span>
                 </a>` : ""}
+                <a href="apresentacao.html" class="mode-tab-btn ${currentPage === "apresentacao.html" ? "active" : ""}">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>Slides & Arquitetura</span>
+                </a>
             </nav>
         </div>
     </header>

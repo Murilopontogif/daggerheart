@@ -64,6 +64,26 @@ export async function criarCampanha(req, res) {
     }
 }
 
+export async function atualizarCampanha(req, res) {
+    try {
+        const id = Number(req.params.id);
+        const { nome, descricao = "" } = req.body;
+        if (!nome || !nome.trim()) {
+            return res.status(400).json({ mensagem: "O nome da campanha é obrigatório." });
+        }
+
+        await pool.query(
+            "UPDATE CAMPANHAS SET NOME = ?, DESCRICAO = ? WHERE ID = ?",
+            [nome.trim(), descricao.trim(), id]
+        );
+
+        res.status(200).json({ mensagem: "Campanha atualizada com sucesso!" });
+    } catch (erro) {
+        console.error("Erro ao atualizar campanha:", erro);
+        res.status(500).json({ mensagem: "Erro ao atualizar campanha." });
+    }
+}
+
 export async function deletarCampanha(req, res) {
     try {
         const id = Number(req.params.id);
@@ -189,6 +209,22 @@ export async function criarCombateCampanha(req, res) {
     } catch (erro) {
         console.error("Erro ao criar combate na campanha:", erro);
         res.status(500).json({ mensagem: "Erro ao criar combate na campanha." });
+    }
+}
+
+export async function atualizarCombateCampanha(req, res) {
+    try {
+        const combateId = Number(req.params.combateId);
+        const { nome } = req.body;
+        if (!nome || !nome.trim()) {
+            return res.status(400).json({ mensagem: "O nome do combate é obrigatório." });
+        }
+
+        await pool.query("UPDATE COMBATES SET NOME = ? WHERE ID = ?", [nome.trim(), combateId]);
+        res.status(200).json({ mensagem: "Combate renomeado com sucesso!" });
+    } catch (erro) {
+        console.error("Erro ao atualizar combate:", erro);
+        res.status(500).json({ mensagem: "Erro ao atualizar combate." });
     }
 }
 

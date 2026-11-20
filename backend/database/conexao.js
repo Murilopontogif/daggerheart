@@ -116,6 +116,16 @@ function sincronizarTabelasExtras(dbOuPool, isSqlite = true) {
                 dbOuPool.prepare("INSERT INTO USUARIOS (LOGIN, SENHA, PAPEL, LGPD_ACEITE) VALUES (?, ?, ?, ?)").run("mumu", "$2b$10$MPmHq7xX/0fYSCIy7uO35.Lwbn4NV/ae8erq2.6yW6Hl94IOiqajm", "mestre", 1);
             }
 
+            // Seed campanha e combate padrão se ainda não houver nenhuma campanha
+            try {
+                const campExist = dbOuPool.prepare("SELECT ID FROM CAMPANHAS LIMIT 1").get();
+                if (!campExist) {
+                    dbOuPool.prepare("INSERT INTO CAMPANHAS (ID, NOME, DESCRICAO, MESTRE_ID, FEAR_POINTS) VALUES (1, 'Crônicas de Arden', 'Campanha oficial inicial da mesa de Daggerheart.', 1, 2)").run();
+                    dbOuPool.prepare("INSERT OR IGNORE INTO CAMPANHA_PERSONAGENS (CAMPANHA_ID, PERSONAGEM_ID) VALUES (1, 1), (1, 2)").run();
+                    dbOuPool.prepare("INSERT INTO COMBATES (ID, CAMPANHA_ID, NOME, FEAR_POINTS) VALUES (1, 1, 'Emboscada nas Ruínas', 0), (2, 1, 'Covil do Necromante', 0)").run();
+                }
+            } catch {}
+
             // Ensure USUARIO_ID exists in PERSONAGENS
             try {
                 dbOuPool.exec("ALTER TABLE PERSONAGENS ADD COLUMN USUARIO_ID INTEGER DEFAULT 1;");

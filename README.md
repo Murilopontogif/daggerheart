@@ -181,6 +181,7 @@ daggerheart/
 │   ├── controllers/                # Regras de negócio e manipulação dos dados
 │   │   ├── authController.js       # Login, cadastro, hash bcrypt, JWT, troca de papel e exclusão LGPD
 │   │   ├── PersonagensController.js# CRUD completo de fichas e carregamento de regras do sistema
+│   │   ├── campanhasController.js  # CRUD de campanhas, vínculo de heróis e múltiplos combates salvos
 │   │   ├── combateController.js    # Lógica da arena de combate, instâncias e Pontos de Medo
 │   │   └── criaturasController.js  # CRUD completo do bestiário e filtro anti-metagame
 │   ├── database/                   # Camada de persistência e conexão
@@ -191,6 +192,7 @@ daggerheart/
 │   │   └── corsMiddleware.js       # Configuração de CORS e cabeçalhos HTTP
 │   ├── routes/                     # Definição dos endpoints REST
 │   │   ├── authRoutes.js           # Rotas /api/auth/*
+│   │   ├── campanhasRoutes.js      # Rotas /api/campanhas/*
 │   │   ├── combateRoutes.js        # Rotas /api/combate/*
 │   │   ├── criaturasRoutes.js      # Rotas /api/criaturas/*
 │   │   └── personagensRoutes.js    # Rotas /personagens/*
@@ -203,15 +205,16 @@ daggerheart/
 │   ├── img/                        # Ativos visuais e tokens das criaturas do bestiário
 │   │   └── enemies/                # Avatares das 129 criaturas oficiais
 │   ├── admin.html & admin.js       # Painel administrativo de contas e permissões (Conta Pai)
+│   ├── apresentacao.html           # Apresentação interativa de slides da Entrega 4 e Arquitetura
 │   ├── auth.js                     # Gestão de sessão JWT no cliente e wrapper apiFetch()
 │   ├── banner.avif                 # Arte de capa do cabeçalho
-│   ├── combate.html & combate.js   # Arena de combate, Barra de Medo (0-10) e Rolador 2d12
+│   ├── combate.html & combate.js   # Campanhas, múltiplos combates salvos, Barra de Medo e Dados 2d12
 │   ├── criar-ficha.html & .js      # Construtor interativo da Ficha Oficial de Daggerheart
 │   ├── criaturas.html & .js        # Bestiário completo com busca, criação, edição e exclusão
 │   ├── index.html                  # Portal de entrada (Login, Cadastro, Acesso Rápido Demo e LGPD)
 │   ├── navbar.js                   # Barra de navegação global responsiva e modal de privacidade LGPD
 │   ├── personagens.html & .js      # Grimório de heróis (Cards e Tabela) e modal de edição da ficha
-│   └── style.css                   # Design System minimalista e moderno (Dark Fantasy Glassmorphism)
+│   └── style.css                   # Design System minimalista e moderno (Paleta Oficial)
 │
 ├── sql/                            # Scripts de banco de dados
 │   └── daggerheart.sql             # Script SQL completo (DDL relacional + DML com 370+ registros oficiais)
@@ -219,6 +222,31 @@ daggerheart/
 ├── .gitignore                      # Proteção contra versionamento de node_modules, .env e arquivos locais
 └── README.md                       # Documentação completa do projeto
 ```
+
+### 5.1 Função de Cada Tipo de Arquivo e Como Eles se Comunicam
+
+O sistema foi desenhado para que cada tipo de arquivo tenha uma **responsabilidade única** e converse com a camada seguinte de forma organizada:
+
+1. **Páginas `.html` e `style.css` (`frontend/`)**:
+   - **Função**: Estruturam semanticamente os formulários, tabelas, cards e modais da interface, aplicando a paleta visual (`#9ECEFC`, `#FCE49F`, `#FCCA9F`, `#385C7D`, `#7D755E`).
+2. **Scripts de DOM e `auth.js` (`frontend/*.js`)**:
+   - **Função**: Capturam os eventos do usuário (cliques, envio de formulários) e chamam a função `apiFetch(url, options)` definida em `auth.js`.
+   - **Como se comunica**: O `apiFetch()` busca o token JWT salvo no `localStorage`, injeta automaticamente o cabeçalho `Authorization: Bearer <token>` e faz uma requisição HTTP assíncrona (`fetch`) para o Back-end. Quando a resposta JSON retorna, o script atualiza o DOM sem recarregar a página.
+3. **Ponto de Entrada (`backend/server.js`)**:
+   - **Função**: Inicializa o servidor Express, ativa o CORS e o leitor de JSON (`express.json()`), serve os arquivos estáticos da pasta `frontend/` e direciona cada prefixo de URL (`/api/auth`, `/personagens`, `/api/campanhas`, `/api/combate`, `/api/criaturas`) para seu respectivo arquivo da pasta `routes/`.
+4. **Rotas (`backend/routes/*.js`)**:
+   - **Função**: São a "recepção" da API. Mapeiam o método HTTP (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) e o caminho da URL para os **Middlewares** de segurança e para a função do **Controller**.
+   - **Como se comunica**: Exemplo em `campanhasRoutes.js`: `router.post("/", authMiddleware, requireMestre, criarCampanha)` — ao receber um `POST`, a Rota aciona primeiro os Middlewares e, se autorizados, entrega a requisição ao Controller.
+5. **Middlewares (`backend/middlewares/authMiddleware.js`)**:
+   - **Função**: Atuam como "porteiros de segurança" entre a Rota e o Controller.
+   - **Como se comunica**: Extraem o token JWT do cabeçalho HTTP, verificam sua assinatura criptográfica com `jwt.verify(token, JWT_SECRET)`, anexam os dados do usuário autenticado em `req.user` e verificam o nível de acesso (`requireMestre` ou `requirePai`). Se o token for inválido ou o perfil não tiver permissão, o Middleware interrompe o fluxo ali mesmo com status `401` ou `403`. Se estiver tudo certo, chama `next()` para avançar ao Controller.
+6. **Controllers (`backend/controllers/*.js`)**:
+   - **Função**: São o "cérebro" da aplicação. Contêm todas as regras de negócio (validação de campos obrigatórios, cálculo/sincronia de recursos, criptografia `bcrypt`, filtro anti-metagame que oculta vida e ataques de monstros para jogadores).
+   - **Como se comunica**: O Controller recebe `req` (com `req.body`, `req.params`, `req.user`), chama o banco de dados através de `await pool.query(sql, valores)` exportado por `database/conexao.js` e devolve o resultado em JSON para o Front-end com `res.status(...).json(...)`.
+7. **Camada de Banco de Dados (`backend/database/conexao.js` e `sql/daggerheart.sql`)**:
+   - **Função**: Gerencia o pool de conexões com o **MySQL** (`mysql2/promise`) usando as variáveis do `.env` (com fallback transparente para **SQLite** local) e executa as queries parametrizadas (`?`) protegidas contra *SQL Injection*.
+
+> 💡 **Apresentação Interativa de Slides no Navegador**: Com o servidor rodando, acesse **`http://localhost:3000/apresentacao.html`** (ou clique na aba **"Slides & Arquitetura"** no menu superior do site) para abrir a apresentação de slides interativa da Entrega 4!
 
 ---
 
@@ -229,7 +257,13 @@ daggerheart/
 ```mermaid
 erDiagram
     USUARIOS ||--o{ PERSONAGENS : "possui (1:N)"
-    PERSONAGENS ||--o| COMBATE_HEROIS : "participa (1:0..1)"
+    USUARIOS ||--o{ CAMPANHAS : "mestra (1:N)"
+    CAMPANHAS ||--o{ CAMPANHA_PERSONAGENS : "vincula (1:N)"
+    PERSONAGENS ||--o{ CAMPANHA_PERSONAGENS : "participa (1:N)"
+    CAMPANHAS ||--o{ COMBATES : "contem (1:N)"
+    COMBATES ||--o{ COMBATE_HEROIS : "inclui (1:N)"
+    COMBATES ||--o{ COMBATE_CRIATURAS : "inclui (1:N)"
+    PERSONAGENS ||--o{ COMBATE_HEROIS : "atua (1:N)"
     INIMIGOS ||--o{ COMBATE_CRIATURAS : "instancia (1:N)"
     
     USUARIOS {
@@ -238,6 +272,29 @@ erDiagram
         varchar SENHA "Hash bcrypt"
         varchar PAPEL "mestre | player"
         boolean LGPD_ACEITE
+        datetime DATA_CRIACAO
+    }
+
+    CAMPANHAS {
+        int ID PK
+        varchar NOME
+        text DESCRICAO
+        int MESTRE_ID FK
+        int FEAR_POINTS "Medo da Campanha 0-10"
+        datetime DATA_CRIACAO
+    }
+
+    CAMPANHA_PERSONAGENS {
+        int ID PK
+        int CAMPANHA_ID FK
+        int PERSONAGEM_ID FK
+    }
+
+    COMBATES {
+        int ID PK
+        int CAMPANHA_ID FK
+        varchar NOME
+        boolean ATIVO
         datetime DATA_CRIACAO
     }
 
