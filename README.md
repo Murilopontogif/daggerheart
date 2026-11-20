@@ -451,16 +451,25 @@ Na tela inicial (`http://localhost:3000`), você pode digitar as credenciais aba
 | `PUT` | `/personagens/:id` | `authMiddleware` | Atualiza dados, atributos, PV/PF/Armadura, inventário e cartas da ficha (sincronizando com a arena). |
 | `DELETE` | `/personagens/:id` | `authMiddleware` | Exclui o personagem (apenas dono ou Mestre) e remove sua instância da arena de combate. |
 
-### ⚔️ Arena de Combate (`/api/combate`)
+### ⚔️ Campanhas e Arena de Combate (`/api/campanhas` e `/api/combate`)
 | Método | Rota | Proteção | Descrição |
 | :---: | :--- | :---: | :--- |
-| `GET` | `/api/combate/estado` | `authMiddleware` | Retorna Pontos de Medo, heróis e criaturas em combate (filtrando dados sensíveis de monstros para players). |
-| `PATCH` | `/api/combate/medo` | `authMiddleware` + `requireMestre` | Atualiza o contador de Pontos de Medo da mesa (0 a 10). |
-| `POST` | `/api/combate/adicionar-heroi` | `authMiddleware` | Insere um personagem na arena de combate. |
-| `POST` | `/api/combate/adicionar-criatura` | `authMiddleware` + `requireMestre` | Invoca uma ou mais instâncias de uma criatura do bestiário para a arena. |
+| `GET` | `/api/campanhas` | `authMiddleware` | Lista campanhas (Mestre vê todas; Jogador vê as campanhas em que seus personagens estão). |
+| `POST` | `/api/campanhas` | `authMiddleware` + `requireMestre` | Cria uma nova campanha com contador próprio de Pontos de Medo. |
+| `DELETE` | `/api/campanhas/:id` | `authMiddleware` + `requireMestre` | Exclui uma campanha e todos os combates vinculados a ela. |
+| `GET` | `/api/campanhas/:id/personagens` | `authMiddleware` | Lista os personagens participantes da campanha. |
+| `POST` | `/api/campanhas/:id/personagens` | `authMiddleware` + `requireMestre` | Vincula um personagem existente à campanha. |
+| `DELETE` | `/api/campanhas/:id/personagens/:personagemId` | `authMiddleware` + `requireMestre` | Remove um personagem da campanha. |
+| `GET` | `/api/campanhas/:id/combates` | `authMiddleware` | Lista todos os combates salvos dentro da campanha. |
+| `POST` | `/api/campanhas/:id/combates` | `authMiddleware` + `requireMestre` | Cria um novo combate persistente dentro da campanha. |
+| `DELETE` | `/api/campanhas/:id/combates/:combateId` | `authMiddleware` + `requireMestre` | Exclui um combate salvo da campanha. |
+| `GET` | `/api/combate/estado?combateId=...` | `authMiddleware` | Retorna Pontos de Medo da campanha, heróis e criaturas do combate selecionado. |
+| `PATCH` | `/api/combate/medo` | `authMiddleware` + `requireMestre` | Atualiza o contador de Pontos de Medo da campanha (0 a 10). |
+| `POST` | `/api/combate/adicionar-heroi` | `authMiddleware` | Insere um personagem da campanha no combate ativo. |
+| `POST` | `/api/combate/adicionar-criatura` | `authMiddleware` + `requireMestre` | Invoca uma ou mais instâncias de uma criatura do bestiário para o combate ativo. |
 | `PATCH` | `/api/combate/atualizar-status` | `authMiddleware` | Atualiza PV, Fadiga, Armadura, Esperança e anotações de combatentes em tempo real. |
-| `DELETE` | `/api/combate/remover/:tipo/:id` | `authMiddleware` | Remove um herói ou criatura da arena de combate. |
-| `POST` | `/api/combate/limpar` | `authMiddleware` + `requireMestre` | Remove todas as instâncias ativas da arena para iniciar um novo encontro. |
+| `DELETE` | `/api/combate/remover/:tipo/:id` | `authMiddleware` | Remove um herói ou criatura do combate ativo. |
+| `POST` | `/api/combate/limpar` | `authMiddleware` + `requireMestre` | Limpa os combatentes do combate selecionado. |
 
 ### 🐉 Bestiário e Criaturas (`/api/criaturas`)
 | Método | Rota | Proteção | Descrição |
