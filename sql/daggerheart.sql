@@ -263,6 +263,20 @@ VALUES
  '[{"nome":"Movimento Ligeiro","dominio":"Falange","nivel":1}]',
  NULL);
 
+-- --------------------------------------------------------------------------
+-- 13. CARGA INICIAL DE CAMPANHA, VÍNCULO DE HERÓIS E COMBATES SALVOS
+-- --------------------------------------------------------------------------
+INSERT INTO CAMPANHAS (ID, NOME, DESCRICAO, MESTRE_ID, FEAR_POINTS) VALUES
+(1, 'Crônicas de Arden', 'Campanha oficial inicial da mesa de Daggerheart.', 1, 2);
+
+INSERT INTO CAMPANHA_PERSONAGENS (CAMPANHA_ID, PERSONAGEM_ID) VALUES
+(1, 1),
+(1, 2);
+
+INSERT INTO COMBATES (ID, CAMPANHA_ID, NOME, FEAR_POINTS) VALUES
+(1, 1, 'Emboscada nas Ruínas', 0),
+(2, 1, 'Covil do Necromante', 0);
+
 -- Inserindo Regras e Skills (Classes, Subclasses, Ancestralidades e Comunidades)
 INSERT INTO REGRAS_SISTEMA (CATEGORIA, CHAVE, DADOS) VALUES
 ('CLASSE', 'Bardo', '{"dominios":["Códice","Graça"],"subclasses":["Beletrista","Trovador"],"evasao":10,"pv":6,"esperanca":2,"habilidadeNome":"Inspiração de Bardo","habilidade":"Inspiração: Uma vez por sessão, descreva como você inspira o grupo e forneça a você e seus aliados um Dado de Inspiração (d6 no Nv 1, d8 no Nv 5, d10 no Nv 8). Um personagem pode rolar o Dado de Inspiração e somar o resultado a um teste, reação, rolagem de dano ou para recuperar um número de PF igual ao resultado."}'),
